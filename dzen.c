@@ -208,6 +208,7 @@ int update_battery() {
     return EXIT_FAILURE;
   }
 
+  fclose(fp);
   int scanned = sscanf(line, "%d", &battery);
 
   if (scanned == EOF || scanned < 1) {
