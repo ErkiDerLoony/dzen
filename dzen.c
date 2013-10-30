@@ -167,6 +167,15 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  const char* BLUE = "#0046bf";
+  const char* GREEN = "#00bf00";
+  const char* ORANGE = "#bf9900";
+  const char* RED = "#b62300";
+  const char* CYAN = "#00bfbf";
+  const char* MAGENTA = "#b400a3";
+  const char* GREY = "#969696";
+  const char* DARK_GREY = "#444444";
+
   length = atoi(argv[1]);
 
   update(1);
@@ -178,11 +187,26 @@ int main(int argc, char** argv) {
       return EXIT_FAILURE;
     }
 
-    printf("CPU ^fg(blue)^r(%dx10)^fg(green)^r(%dx10)^fg(red)^r(%dx10)^fg(orange)^r(%dx10)^fg(magenta)^r(%dx10)^fg(grey)^r(%dx10)^fg(cyan)^r(%dx10)^r(%dx10)^r(%dx10)^fg(#555555)^r(%dx10)^fg()", cpu_scaled.nice, cpu_scaled.user, cpu_scaled.system, cpu_scaled.irq, cpu_scaled.softirq, cpu_scaled.iowait, cpu_scaled.steal, cpu_scaled.guest, cpu_scaled.guest_nice, length-cpu_scaled.nice-cpu_scaled.user-cpu_scaled.system-cpu_scaled.irq-cpu_scaled.softirq-cpu_scaled.iowait-cpu_scaled.steal-cpu_scaled.guest-cpu_scaled.guest_nice);
+    printf("CPU ");
+    printf("^fg(%s)^r(%dx10)", BLUE, cpu_scaled.nice);
+    printf("^fg(%s)^r(%dx10)", GREEN, cpu_scaled.user);
+    printf("^fg(%s)^r(%dx10)", RED, cpu_scaled.system);
+    printf("^fg(%s)^r(%dx10)", ORANGE, cpu_scaled.irq);
+    printf("^fg(%s)^r(%dx10)", MAGENTA, cpu_scaled.softirq);
+    printf("^fg(%s)^r(%dx10)", GREY, cpu_scaled.iowait);
+    printf("^fg(%s)^r(%dx10)", CYAN, cpu_scaled.steal);
+    printf("^r(%dx10)", cpu_scaled.guest);
+    printf("^r(%dx10)", cpu_scaled.guest_nice);
+    printf("^fg(%s)^r(%dx10)", DARK_GREY, length-cpu_scaled.nice-cpu_scaled.user-cpu_scaled.system-cpu_scaled.irq-cpu_scaled.softirq-cpu_scaled.iowait-cpu_scaled.steal-cpu_scaled.guest-cpu_scaled.guest_nice);
+    printf("^fg()");
 
     printf("   ");
 
-    printf("RAM ^fg(green)^r(%dx10)^fg(blue)^r(%dx10)^fg(orange)^r(%dx10)^fg(#555555)^r(%dx10)", mem_scaled.total-mem_scaled.free-mem_scaled.buffered-mem_scaled.cached, mem_scaled.buffered, mem_scaled.cached, mem_scaled.free);
+    printf("RAM ");
+    printf("^fg(%s)^r(%dx10)", GREEN, mem_scaled.total-mem_scaled.free-mem_scaled.buffered-mem_scaled.cached);
+    printf("^fg(%s)^r(%dx10)", BLUE, mem_scaled.buffered);
+    printf("^fg(%s)^r(%dx10)", ORANGE, mem_scaled.cached);
+    printf("^fg(%s)^r(%dx10)", DARK_GREY, mem_scaled.free);
 
     printf("\n");
     fflush(stdout);
