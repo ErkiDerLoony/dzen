@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct info {
+struct cpu_info {
   int user;
   int nice;
   int system;
@@ -15,15 +15,27 @@ struct info {
   int guest_nice;
 };
 
-struct info current;
-struct info old;
-struct info diff;
-struct info scaled;
-int sum;
+struct mem_info {
+  int total;
+  int free;
+  int buffered;
+  int cached;
+};
+
+struct cpu_info cpu_current;
+struct cpu_info cpu_old;
+struct cpu_info cpu_diff;
+struct cpu_info cpu_scaled;
+int cpu_sum;
+
+struct mem_info mem;
+struct mem_info mem_scaled;
+int mem_sum;
+
 int length;
 
-int update(int initial) {
-  old = current;
+int update_cpu(int initial) {
+  cpu_old = cpu_current;
   FILE* fp = fopen("/proc/stat", "r");
 
   if (fp == NULL) {
@@ -31,56 +43,121 @@ int update(int initial) {
     return EXIT_FAILURE;
   }
 
-#ifdef DEBUG
-  printf("File opened.\n");
-#endif
-
   char line[80];
   char* result = fgets(line, 80, fp);
 
-  if (result != NULL) {
-    sscanf(line, "cpu %d %d %d %d %d %d %d %d %d %d", &current.user, &current.nice, &current.system, &current.idle, &current.iowait, &current.irq, &current.softirq, &current.steal, &current.guest, &current.guest_nice);
-  } else {
+  if (result == NULL) {
+    fclose(fp);
     perror("fgets");
+    return EXIT_FAILURE;
+  }
+
+  int scanned = sscanf(line, "cpu %d %d %d %d %d %d %d %d %d %d", &cpu_current.user, &cpu_current.nice, &cpu_current.system, &cpu_current.idle, &cpu_current.iowait, &cpu_current.irq, &cpu_current.softirq, &cpu_current.steal, &cpu_current.guest, &cpu_current.guest_nice);
+
+  if (scanned < 1 || scanned == EOF) {
+    fclose(fp);
+    perror("sscanf");
+    return EXIT_FAILURE;
   }
 
   fclose(fp);
-#ifdef DEBUG
-  printf("File closed.\n");
-#endif
-
-  if (result == NULL) {
-    return EXIT_FAILURE;
-  }
 
   if (initial) {
     return EXIT_SUCCESS;
   }
 
-  diff.user = current.user - old.user;
-  diff.nice = current.nice - old.nice;
-  diff.system = current.system - old.system;
-  diff.idle = current.idle - old.idle;
-  diff.iowait = current.iowait - old.iowait;
-  diff.irq = current.irq - old.irq;
-  diff.softirq = current.softirq - old.softirq;
-  diff.steal = current.steal - old.steal;
-  diff.guest = current.guest - old.guest;
-  diff.guest_nice = current.guest_nice - old.guest_nice;
+  cpu_diff.user = cpu_current.user - cpu_old.user;
+  cpu_diff.nice = cpu_current.nice - cpu_old.nice;
+  cpu_diff.system = cpu_current.system - cpu_old.system;
+  cpu_diff.idle = cpu_current.idle - cpu_old.idle;
+  cpu_diff.iowait = cpu_current.iowait - cpu_old.iowait;
+  cpu_diff.irq = cpu_current.irq - cpu_old.irq;
+  cpu_diff.softirq = cpu_current.softirq - cpu_old.softirq;
+  cpu_diff.steal = cpu_current.steal - cpu_old.steal;
+  cpu_diff.guest = cpu_current.guest - cpu_old.guest;
+  cpu_diff.guest_nice = cpu_current.guest_nice - cpu_old.guest_nice;
 
-  sum = diff.user + diff.nice + diff.system + diff.idle + diff.iowait + diff.irq + diff.softirq + diff.steal + diff.guest + diff.guest_nice;
+  cpu_sum = cpu_diff.user + cpu_diff.nice + cpu_diff.system + cpu_diff.idle + cpu_diff.iowait + cpu_diff.irq + cpu_diff.softirq + cpu_diff.steal + cpu_diff.guest + cpu_diff.guest_nice;
 
-  scaled.user = (int) (0.5 + length*diff.user/sum);
-  scaled.nice = (int) (0.5 + length*diff.nice/sum);
-  scaled.system = (int) (0.5 + length*diff.system/sum);
-  scaled.idle = (int) (0.5 + length*diff.idle/sum);
-  scaled.iowait = (int) (0.5 + length*diff.iowait/sum);
-  scaled.irq = (int) (0.5 + length*diff.irq/sum);
-  scaled.softirq = (int) (0.5 + length*diff.softirq/sum);
-  scaled.steal = (int) (0.5 + length*diff.steal/sum);
-  scaled.guest = (int) (0.5 + length*diff.guest/sum);
-  scaled.guest_nice = (int) (0.5 + length*diff.guest_nice/sum);
+  cpu_scaled.user = (int) (0.5 + length*cpu_diff.user/cpu_sum);
+  cpu_scaled.nice = (int) (0.5 + length*cpu_diff.nice/cpu_sum);
+  cpu_scaled.system = (int) (0.5 + length*cpu_diff.system/cpu_sum);
+  cpu_scaled.idle = (int) (0.5 + length*cpu_diff.idle/cpu_sum);
+  cpu_scaled.iowait = (int) (0.5 + length*cpu_diff.iowait/cpu_sum);
+  cpu_scaled.irq = (int) (0.5 + length*cpu_diff.irq/cpu_sum);
+  cpu_scaled.softirq = (int) (0.5 + length*cpu_diff.softirq/cpu_sum);
+  cpu_scaled.steal = (int) (0.5 + length*cpu_diff.steal/cpu_sum);
+  cpu_scaled.guest = (int) (0.5 + length*cpu_diff.guest/cpu_sum);
+  cpu_scaled.guest_nice = (int) (0.5 + length*cpu_diff.guest_nice/cpu_sum);
   return EXIT_SUCCESS;
+}
+
+int update_memory(int initial) {
+  FILE* fp = fopen("/proc/meminfo", "r");
+
+  if (fp == NULL) {
+    perror("open");
+    return EXIT_FAILURE;
+  }
+
+  int i;
+
+  for (i = 0; i < 4; i++) {
+    char line[80];
+    char* result = fgets(line, 80, fp);
+    int scanned;
+
+    if (result == NULL) {
+      fclose(fp);
+      perror("fgets");
+      return EXIT_FAILURE;
+    }
+
+    switch (i) {
+    case 0:
+      scanned = sscanf(line, "MemTotal: %d kB", &mem.total);
+      break;
+    case 1:
+      scanned = sscanf(line, "MemFree: %d kB", &mem.free);
+      break;
+    case 2:
+      scanned = sscanf(line, "Buffers: %d kB", &mem.buffered);
+      break;
+    case 3:
+      scanned = sscanf(line, "Cached: %d kB", &mem.cached);
+      break;
+    }
+
+    if (scanned < 1 || scanned == EOF) {
+      fclose(fp);
+      perror("sscanf");
+      return EXIT_FAILURE;
+    }
+  }
+
+  fclose(fp);
+
+  if (initial) {
+    return EXIT_SUCCESS;
+  }
+
+  mem_scaled.total = length;
+  mem_scaled.free = (int) (0.5 + length*mem.free/mem.total);
+  mem_scaled.buffered = (int) (0.5 + length*mem.buffered/mem.total);
+  mem_scaled.cached = (int) (0.5 + length*mem.cached/mem.total);
+
+  return EXIT_SUCCESS;
+}
+
+int update(int initial) {
+  int result = update_cpu(initial);
+
+  if (result != EXIT_SUCCESS) {
+    return result;
+  }
+
+  result = update_memory(initial);
+  return result;
 }
 
 int main(int argc, char** argv) {
@@ -101,7 +178,13 @@ int main(int argc, char** argv) {
       return EXIT_FAILURE;
     }
 
-    printf("CPU ^fg(blue)^r(%dx10)^fg(green)^r(%dx10)^fg(red)^r(%dx10)^fg(orange)^r(%dx10)^fg(magenta)^r(%dx10)^fg(grey)^r(%dx10)^fg(cyan)^r(%dx10)^r(%dx10)^r(%dx10)^fg(darkgrey)^r(%dx10)\n", scaled.nice, scaled.user, scaled.system, scaled.irq, scaled.softirq, scaled.iowait, scaled.steal, scaled.guest, scaled.guest_nice, 100-scaled.nice-scaled.user-scaled.system-scaled.irq-scaled.softirq-scaled.iowait-scaled.steal-scaled.guest-scaled.guest_nice);
+    printf("CPU ^fg(blue)^r(%dx10)^fg(green)^r(%dx10)^fg(red)^r(%dx10)^fg(orange)^r(%dx10)^fg(magenta)^r(%dx10)^fg(grey)^r(%dx10)^fg(cyan)^r(%dx10)^r(%dx10)^r(%dx10)^fg(#555555)^r(%dx10)^fg()", cpu_scaled.nice, cpu_scaled.user, cpu_scaled.system, cpu_scaled.irq, cpu_scaled.softirq, cpu_scaled.iowait, cpu_scaled.steal, cpu_scaled.guest, cpu_scaled.guest_nice, length-cpu_scaled.nice-cpu_scaled.user-cpu_scaled.system-cpu_scaled.irq-cpu_scaled.softirq-cpu_scaled.iowait-cpu_scaled.steal-cpu_scaled.guest-cpu_scaled.guest_nice);
+
+    printf("   ");
+
+    printf("RAM ^fg(green)^r(%dx10)^fg(blue)^r(%dx10)^fg(orange)^r(%dx10)^fg(#555555)^r(%dx10)", mem_scaled.total-mem_scaled.free-mem_scaled.buffered-mem_scaled.cached, mem_scaled.buffered, mem_scaled.cached, mem_scaled.free);
+
+    printf("\n");
     fflush(stdout);
   }
 
