@@ -36,6 +36,9 @@ struct mem_info mem;
 struct mem_info mem_scaled;
 int mem_sum;
 
+int battery;
+int battery_scaled;
+
 int length;
 
 int update_cpu(int initial) {
@@ -120,7 +123,7 @@ int update_cpu(int initial) {
   return EXIT_SUCCESS;
 }
 
-int update_memory(int initial) {
+int update_memory() {
   FILE* fp = fopen("/proc/meminfo", "r");
 
   if (fp == NULL) {
@@ -172,10 +175,6 @@ int update_memory(int initial) {
 
   fclose(fp);
 
-  if (initial) {
-    return EXIT_SUCCESS;
-  }
-
   mem_scaled.total = length;
   mem_scaled.free = (int) (0.5 + length*mem.free/mem.total);
   mem_scaled.buffered = (int) (0.5 + length*mem.buffered/mem.total);
@@ -186,6 +185,41 @@ int update_memory(int initial) {
   return EXIT_SUCCESS;
 }
 
+int update_battery() {
+  battery = -1;
+
+  if (access("/sys/class/power_supply/BAT0/capacity", R_OK) == -1) {
+    return EXIT_SUCCESS;
+  }
+
+  FILE* fp = fopen("/sys/class/power_supply/BAT0/capacity", "r");
+
+  if (fp == NULL) {
+    perror("fopen");
+    return EXIT_FAILURE;
+  }
+
+  char line[80];
+  char* got = fgets(line, 80, fp);
+
+  if (got == NULL) {
+    perror("fgets");
+    fclose(fp);
+    return EXIT_FAILURE;
+  }
+
+  int scanned = sscanf(line, "%d", &battery);
+
+  if (scanned == EOF || scanned < 1) {
+    perror("sscanf");
+    fclose(fp);
+    return EXIT_FAILURE;
+  }
+
+  battery_scaled = (int) (0.5 + length*battery/100);
+  return EXIT_SUCCESS;
+}
+
 int update(int initial) {
   int result = update_cpu(initial);
 
@@ -193,7 +227,15 @@ int update(int initial) {
     return result;
   }
 
-  result = update_memory(initial);
+  if (initial || battery  != -1) {
+    result = update_battery();
+
+    if (result != EXIT_SUCCESS) {
+      return result;
+    }
+  }
+
+  result = update_memory();
   return result;
 }
 
@@ -315,6 +357,23 @@ int main(int argc, char** argv) {
     printf("^fg(%s)^r(%dx10)", RED, mem_scaled.swap_total-mem_scaled.swap_free);
     printf("^fg(%s)^r(%dx10)", DARK_GREY, mem_scaled.swap_free);
     printf("^fg()");
+
+    if (battery != -1) {
+      printf("   ");
+      printf("Akku ");
+
+      if (battery < 11) {
+        printf("^fg(%s)", RED);
+      } else if (battery < 21) {
+        printf("^fg(%s)", ORANGE);
+      } else {
+        printf("^fg(%s)", GREEN);
+      }
+
+      printf("^r(%dx10)", battery_scaled);
+      printf("^fg(%s)^r(%dx10)", DARK_GREY, length-battery_scaled);
+      printf("^fg()");
+    }
 
     printf("\n");
     fflush(stdout);
