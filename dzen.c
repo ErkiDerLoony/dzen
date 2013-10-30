@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 struct cpu_info {
   int user;
@@ -24,11 +25,12 @@ struct mem_info {
   int swap_free;
 };
 
-struct cpu_info cpu_current;
-struct cpu_info cpu_old;
-struct cpu_info cpu_diff;
-struct cpu_info cpu_scaled;
-int cpu_sum;
+struct cpu_info* cpu_current;
+struct cpu_info* cpu_old;
+struct cpu_info* cpu_diff;
+struct cpu_info* cpu_scaled;
+int cpus;
+int* cpu_sum;
 
 struct mem_info mem;
 struct mem_info mem_scaled;
@@ -37,7 +39,12 @@ int mem_sum;
 int length;
 
 int update_cpu(int initial) {
-  cpu_old = cpu_current;
+  int i;
+
+  for (i = 0; i < cpus; i++) {
+    cpu_old[i] = cpu_current[i];
+  }
+
   FILE* fp = fopen("/proc/stat", "r");
 
   if (fp == NULL) {
@@ -45,21 +52,29 @@ int update_cpu(int initial) {
     return EXIT_FAILURE;
   }
 
-  char line[80];
-  char* result = fgets(line, 80, fp);
+  for (i = 0; i < cpus; i++) {
+    char line[80];
+    char* result = fgets(line, 80, fp);
 
-  if (result == NULL) {
-    fclose(fp);
-    perror("fgets");
-    return EXIT_FAILURE;
-  }
+    if (result == NULL) {
+      fclose(fp);
+      perror("fgets");
+      return EXIT_FAILURE;
+    }
 
-  int scanned = sscanf(line, "cpu %d %d %d %d %d %d %d %d %d %d", &cpu_current.user, &cpu_current.nice, &cpu_current.system, &cpu_current.idle, &cpu_current.iowait, &cpu_current.irq, &cpu_current.softirq, &cpu_current.steal, &cpu_current.guest, &cpu_current.guest_nice);
+    char buffer[80];
+    int scanned = sscanf(line, "%s %d %d %d %d %d %d %d %d %d %d", buffer,
+                         &(cpu_current[i].user), &(cpu_current[i].nice),
+                         &(cpu_current[i].system), &(cpu_current[i].idle),
+                         &(cpu_current[i].iowait), &(cpu_current[i].irq),
+                         &(cpu_current[i].softirq), &(cpu_current[i].steal),
+                         &(cpu_current[i].guest), &(cpu_current[i].guest_nice));
 
-  if (scanned < 1 || scanned == EOF) {
-    fclose(fp);
-    perror("sscanf");
-    return EXIT_FAILURE;
+    if (scanned < 1 || scanned == EOF) {
+      fclose(fp);
+      perror("sscanf");
+      return EXIT_FAILURE;
+    }
   }
 
   fclose(fp);
@@ -68,29 +83,40 @@ int update_cpu(int initial) {
     return EXIT_SUCCESS;
   }
 
-  cpu_diff.user = cpu_current.user - cpu_old.user;
-  cpu_diff.nice = cpu_current.nice - cpu_old.nice;
-  cpu_diff.system = cpu_current.system - cpu_old.system;
-  cpu_diff.idle = cpu_current.idle - cpu_old.idle;
-  cpu_diff.iowait = cpu_current.iowait - cpu_old.iowait;
-  cpu_diff.irq = cpu_current.irq - cpu_old.irq;
-  cpu_diff.softirq = cpu_current.softirq - cpu_old.softirq;
-  cpu_diff.steal = cpu_current.steal - cpu_old.steal;
-  cpu_diff.guest = cpu_current.guest - cpu_old.guest;
-  cpu_diff.guest_nice = cpu_current.guest_nice - cpu_old.guest_nice;
+  for (i = 0; i < cpus; i++) {
+    cpu_diff[i].user = cpu_current[i].user - cpu_old[i].user;
+    cpu_diff[i].nice = cpu_current[i].nice - cpu_old[i].nice;
+    cpu_diff[i].system = cpu_current[i].system - cpu_old[i].system;
+    cpu_diff[i].idle = cpu_current[i].idle - cpu_old[i].idle;
+    cpu_diff[i].iowait = cpu_current[i].iowait - cpu_old[i].iowait;
+    cpu_diff[i].irq = cpu_current[i].irq - cpu_old[i].irq;
+    cpu_diff[i].softirq = cpu_current[i].softirq - cpu_old[i].softirq;
+    cpu_diff[i].steal = cpu_current[i].steal - cpu_old[i].steal;
+    cpu_diff[i].guest = cpu_current[i].guest - cpu_old[i].guest;
+    cpu_diff[i].guest_nice = cpu_current[i].guest_nice - cpu_old[i].guest_nice;
 
-  cpu_sum = cpu_diff.user + cpu_diff.nice + cpu_diff.system + cpu_diff.idle + cpu_diff.iowait + cpu_diff.irq + cpu_diff.softirq + cpu_diff.steal + cpu_diff.guest + cpu_diff.guest_nice;
+    cpu_sum[i] = cpu_diff[i].user + cpu_diff[i].nice + cpu_diff[i].system + cpu_diff[i].idle + cpu_diff[i].iowait + cpu_diff[i].irq + cpu_diff[i].softirq + cpu_diff[i].steal + cpu_diff[i].guest + cpu_diff[i].guest_nice;
 
-  cpu_scaled.user = (int) (0.5 + length*cpu_diff.user/cpu_sum);
-  cpu_scaled.nice = (int) (0.5 + length*cpu_diff.nice/cpu_sum);
-  cpu_scaled.system = (int) (0.5 + length*cpu_diff.system/cpu_sum);
-  cpu_scaled.idle = (int) (0.5 + length*cpu_diff.idle/cpu_sum);
-  cpu_scaled.iowait = (int) (0.5 + length*cpu_diff.iowait/cpu_sum);
-  cpu_scaled.irq = (int) (0.5 + length*cpu_diff.irq/cpu_sum);
-  cpu_scaled.softirq = (int) (0.5 + length*cpu_diff.softirq/cpu_sum);
-  cpu_scaled.steal = (int) (0.5 + length*cpu_diff.steal/cpu_sum);
-  cpu_scaled.guest = (int) (0.5 + length*cpu_diff.guest/cpu_sum);
-  cpu_scaled.guest_nice = (int) (0.5 + length*cpu_diff.guest_nice/cpu_sum);
+    int len;
+
+    if (i == 0) {
+      len = length;
+    } else {
+      len = length/2;
+    }
+
+    cpu_scaled[i].user = (int) (0.5 + len*cpu_diff[i].user/cpu_sum[i]);
+    cpu_scaled[i].nice = (int) (0.5 + len*cpu_diff[i].nice/cpu_sum[i]);
+    cpu_scaled[i].system = (int) (0.5 + len*cpu_diff[i].system/cpu_sum[i]);
+    cpu_scaled[i].idle = (int) (0.5 + len*cpu_diff[i].idle/cpu_sum[i]);
+    cpu_scaled[i].iowait = (int) (0.5 + len*cpu_diff[i].iowait/cpu_sum[i]);
+    cpu_scaled[i].irq = (int) (0.5 + len*cpu_diff[i].irq/cpu_sum[i]);
+    cpu_scaled[i].softirq = (int) (0.5 + len*cpu_diff[i].softirq/cpu_sum[i]);
+    cpu_scaled[i].steal = (int) (0.5 + len*cpu_diff[i].steal/cpu_sum[i]);
+    cpu_scaled[i].guest = (int) (0.5 + len*cpu_diff[i].guest/cpu_sum[i]);
+    cpu_scaled[i].guest_nice = (int) (0.5 + len*cpu_diff[i].guest_nice/cpu_sum[i]);
+  }
+
   return EXIT_SUCCESS;
 }
 
@@ -180,10 +206,51 @@ int update(int initial) {
   return result;
 }
 
+int init_cpu() {
+  FILE* fp = fopen("/proc/stat", "r");
+
+  if (fp == NULL) {
+    perror("fopen");
+    return EXIT_FAILURE;
+  }
+
+  cpus = 0;
+
+  while (1) {
+    char line[80];
+    char* got = fgets(line, 80, fp);
+
+    if (got == NULL) {
+      fclose(fp);
+      perror("fgets");
+      return EXIT_FAILURE;
+    }
+
+    if (strncmp(line, "cpu", 3) != 0) {
+      break;
+    } else {
+      cpus++;
+    }
+  }
+
+  cpu_current = malloc(cpus*sizeof(struct cpu_info));
+  cpu_old = malloc(cpus*sizeof(struct cpu_info));
+  cpu_diff = malloc(cpus*sizeof(struct cpu_info));
+  cpu_scaled = malloc(cpus*sizeof(struct cpu_info));
+  cpu_sum = malloc(cpus*sizeof(int));
+  return EXIT_SUCCESS;
+}
+
 int main(int argc, char** argv) {
 
   if (argc < 2) {
     fprintf(stderr, "Usage: dzen LENGTH\n");
+    return EXIT_FAILURE;
+  }
+
+  int initialized = init_cpu();
+
+  if (initialized != EXIT_SUCCESS) {
     return EXIT_FAILURE;
   }
 
@@ -204,23 +271,41 @@ int main(int argc, char** argv) {
     sleep(1);
 
     if (update(0) != EXIT_SUCCESS) {
+      free(cpu_current);
+      free(cpu_old);
+      free(cpu_diff);
+      free(cpu_scaled);
+      free(cpu_sum);
       return EXIT_FAILURE;
     }
 
-    printf("CPU ");
-    printf("^fg(%s)^r(%dx10)", BLUE, cpu_scaled.nice);
-    printf("^fg(%s)^r(%dx10)", GREEN, cpu_scaled.user);
-    printf("^fg(%s)^r(%dx10)", RED, cpu_scaled.system);
-    printf("^fg(%s)^r(%dx10)", ORANGE, cpu_scaled.irq);
-    printf("^fg(%s)^r(%dx10)", MAGENTA, cpu_scaled.softirq);
-    printf("^fg(%s)^r(%dx10)", GREY, cpu_scaled.iowait);
-    printf("^fg(%s)^r(%dx10)", CYAN, cpu_scaled.steal);
-    printf("^r(%dx10)", cpu_scaled.guest);
-    printf("^r(%dx10)", cpu_scaled.guest_nice);
-    printf("^fg(%s)^r(%dx10)", DARK_GREY, length-cpu_scaled.nice-cpu_scaled.user-cpu_scaled.system-cpu_scaled.irq-cpu_scaled.softirq-cpu_scaled.iowait-cpu_scaled.steal-cpu_scaled.guest-cpu_scaled.guest_nice);
-    printf("^fg()");
+    int i;
 
-    printf("   ");
+    for (i = 1; i < cpus; i++) {
+      printf("CPU ");
+      int len;
+
+      if (i == 0) {
+        len = length;
+      } else {
+        len = length/2;
+        printf("%d ", i);
+      }
+
+      printf("^fg(%s)^r(%dx10)", BLUE, cpu_scaled[i].nice);
+      printf("^fg(%s)^r(%dx10)", GREEN, cpu_scaled[i].user);
+      printf("^fg(%s)^r(%dx10)", RED, cpu_scaled[i].system);
+      printf("^fg(%s)^r(%dx10)", ORANGE, cpu_scaled[i].irq);
+      printf("^fg(%s)^r(%dx10)", MAGENTA, cpu_scaled[i].softirq);
+      printf("^fg(%s)^r(%dx10)", GREY, cpu_scaled[i].iowait);
+      printf("^fg(%s)^r(%dx10)", CYAN, cpu_scaled[i].steal);
+      printf("^r(%dx10)", cpu_scaled[i].guest);
+      printf("^r(%dx10)", cpu_scaled[i].guest_nice);
+      printf("^fg(%s)^r(%dx10)", DARK_GREY, len-cpu_scaled[i].nice-cpu_scaled[i].user-cpu_scaled[i].system-cpu_scaled[i].irq-cpu_scaled[i].softirq-cpu_scaled[i].iowait-cpu_scaled[i].steal-cpu_scaled[i].guest-cpu_scaled[i].guest_nice);
+      printf("^fg()");
+
+      printf("   ");
+    }
 
     printf("RAM ");
     printf("^fg(%s)^r(%dx10)", GREEN, mem_scaled.total-mem_scaled.free-mem_scaled.buffered-mem_scaled.cached);
@@ -240,5 +325,10 @@ int main(int argc, char** argv) {
     fflush(stdout);
   }
 
+  free(cpu_current);
+  free(cpu_old);
+  free(cpu_diff);
+  free(cpu_scaled);
+  free(cpu_sum);
   return EXIT_SUCCESS;
 }
