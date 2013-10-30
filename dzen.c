@@ -20,6 +20,8 @@ struct mem_info {
   int free;
   int buffered;
   int cached;
+  int swap_total;
+  int swap_free;
 };
 
 struct cpu_info cpu_current;
@@ -102,7 +104,7 @@ int update_memory(int initial) {
 
   int i;
 
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 15; i++) {
     char line[80];
     char* result = fgets(line, 80, fp);
     int scanned;
@@ -126,6 +128,22 @@ int update_memory(int initial) {
     case 3:
       scanned = sscanf(line, "Cached: %d kB", &mem.cached);
       break;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+      continue;
+    case 13:
+      scanned = sscanf(line, "SwapTotal: %d kB", &mem.swap_total);
+      break;
+    case 14:
+      scanned = sscanf(line, "SwapFree: %d kB", &mem.swap_free);
+      break;
     }
 
     if (scanned < 1 || scanned == EOF) {
@@ -145,6 +163,8 @@ int update_memory(int initial) {
   mem_scaled.free = (int) (0.5 + length*mem.free/mem.total);
   mem_scaled.buffered = (int) (0.5 + length*mem.buffered/mem.total);
   mem_scaled.cached = (int) (0.5 + length*mem.cached/mem.total);
+  mem_scaled.swap_total = length;
+  mem_scaled.swap_free = (int) (0.5 + length*mem.swap_free/mem.swap_total);
 
   return EXIT_SUCCESS;
 }
@@ -207,6 +227,14 @@ int main(int argc, char** argv) {
     printf("^fg(%s)^r(%dx10)", BLUE, mem_scaled.buffered);
     printf("^fg(%s)^r(%dx10)", ORANGE, mem_scaled.cached);
     printf("^fg(%s)^r(%dx10)", DARK_GREY, mem_scaled.free);
+    printf("^fg()");
+
+    printf("   ");
+
+    printf("Swap ");
+    printf("^fg(%s)^r(%dx10)", RED, mem_scaled.swap_total-mem_scaled.swap_free);
+    printf("^fg(%s)^r(%dx10)", DARK_GREY, mem_scaled.swap_free);
+    printf("^fg()");
 
     printf("\n");
     fflush(stdout);
