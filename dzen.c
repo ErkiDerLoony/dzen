@@ -128,9 +128,9 @@ int update_memory(int initial) {
     return EXIT_FAILURE;
   }
 
-  int i;
+  unsigned int done = 0;
 
-  for (i = 0; i < 15; i++) {
+  while (done != 64-1) {
     char line[80];
     char* result = fgets(line, 80, fp);
     int scanned;
@@ -141,38 +141,29 @@ int update_memory(int initial) {
       return EXIT_FAILURE;
     }
 
-    switch (i) {
-    case 0:
+    if (strncmp(line, "MemTotal:", 9) == 0) {
       scanned = sscanf(line, "MemTotal: %d kB", &mem.total);
-      break;
-    case 1:
+      done |= 1;
+    } else if (strncmp(line, "MemFree:", 8) == 0) {
       scanned = sscanf(line, "MemFree: %d kB", &mem.free);
-      break;
-    case 2:
+      done |= 2;
+    } else if (strncmp(line, "Buffers:", 8) == 0) {
       scanned = sscanf(line, "Buffers: %d kB", &mem.buffered);
-      break;
-    case 3:
+      done |= 4;
+    } else if (strncmp(line, "Cached:", 7) == 0) {
       scanned = sscanf(line, "Cached: %d kB", &mem.cached);
-      break;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-      continue;
-    case 13:
+      done |= 8;
+    } else if (strncmp(line, "SwapTotal:", 10) == 0) {
       scanned = sscanf(line, "SwapTotal: %d kB", &mem.swap_total);
-      break;
-    case 14:
+      done |= 16;
+    } else if (strncmp(line, "SwapFree:", 9) == 0) {
       scanned = sscanf(line, "SwapFree: %d kB", &mem.swap_free);
-      break;
+      done |= 32;
+    } else {
+      continue;
     }
 
-    if (scanned < 1 || scanned == EOF) {
+    if (scanned == EOF) {
       fclose(fp);
       perror("sscanf");
       return EXIT_FAILURE;
@@ -265,7 +256,11 @@ int main(int argc, char** argv) {
 
   length = atoi(argv[1]);
 
-  update(1);
+  int initial_update = update(1);
+
+  if (initial_update != EXIT_SUCCESS) {
+    return EXIT_FAILURE;
+  }
 
   while (1) {
     sleep(1);
