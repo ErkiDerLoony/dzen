@@ -17,12 +17,12 @@ struct cpu_info {
 };
 
 struct mem_info {
-  int total;
-  int free;
-  int buffered;
-  int cached;
-  int swap_total;
-  int swap_free;
+  long total;
+  long free;
+  long buffered;
+  long cached;
+  long swap_total;
+  long swap_free;
 };
 
 struct cpu_info* cpu_current;
@@ -34,7 +34,7 @@ int* cpu_sum;
 
 struct mem_info mem;
 struct mem_info mem_scaled;
-int mem_sum;
+long mem_sum;
 
 int length;
 
@@ -143,16 +143,16 @@ int update_memory(int initial) {
 
     switch (i) {
     case 0:
-      scanned = sscanf(line, "MemTotal: %d kB", &mem.total);
+      scanned = sscanf(line, "MemTotal: %ld kB", &mem.total);
       break;
     case 1:
-      scanned = sscanf(line, "MemFree: %d kB", &mem.free);
+      scanned = sscanf(line, "MemFree: %ld kB", &mem.free);
       break;
     case 2:
-      scanned = sscanf(line, "Buffers: %d kB", &mem.buffered);
+      scanned = sscanf(line, "Buffers: %ld kB", &mem.buffered);
       break;
     case 3:
-      scanned = sscanf(line, "Cached: %d kB", &mem.cached);
+      scanned = sscanf(line, "Cached: %ld kB", &mem.cached);
       break;
     case 4:
     case 5:
@@ -165,10 +165,10 @@ int update_memory(int initial) {
     case 12:
       continue;
     case 13:
-      scanned = sscanf(line, "SwapTotal: %d kB", &mem.swap_total);
+      scanned = sscanf(line, "SwapTotal: %ld kB", &mem.swap_total);
       break;
     case 14:
-      scanned = sscanf(line, "SwapFree: %d kB", &mem.swap_free);
+      scanned = sscanf(line, "SwapFree: %ld kB", &mem.swap_free);
       break;
     }
 
@@ -190,7 +190,12 @@ int update_memory(int initial) {
   mem_scaled.buffered = (int) (0.5 + length*mem.buffered/mem.total);
   mem_scaled.cached = (int) (0.5 + length*mem.cached/mem.total);
   mem_scaled.swap_total = length;
-  mem_scaled.swap_free = (int) (0.5 + length*mem.swap_free/mem.swap_total);
+
+  if (mem.swap_total > 0) {
+    mem_scaled.swap_free = (int) (0.5 + length*mem.swap_free/mem.swap_total);
+  } else {
+    mem_scaled.swap_free = length;
+  }
 
   return EXIT_SUCCESS;
 }
@@ -308,18 +313,20 @@ int main(int argc, char** argv) {
     }
 
     printf("RAM ");
-    printf("^fg(%s)^r(%dx10)", GREEN, mem_scaled.total-mem_scaled.free-mem_scaled.buffered-mem_scaled.cached);
-    printf("^fg(%s)^r(%dx10)", BLUE, mem_scaled.buffered);
-    printf("^fg(%s)^r(%dx10)", ORANGE, mem_scaled.cached);
-    printf("^fg(%s)^r(%dx10)", DARK_GREY, mem_scaled.free);
+    printf("^fg(%s)^r(%ldx10)", GREEN, mem_scaled.total-mem_scaled.free-mem_scaled.buffered-mem_scaled.cached);
+    printf("^fg(%s)^r(%ldx10)", BLUE, mem_scaled.buffered);
+    printf("^fg(%s)^r(%ldx10)", ORANGE, mem_scaled.cached);
+    printf("^fg(%s)^r(%ldx10)", DARK_GREY, mem_scaled.free);
     printf("^fg()");
 
-    printf("   ");
+    if (mem.swap_total > 0) {
+      printf("   ");
 
-    printf("Swap ");
-    printf("^fg(%s)^r(%dx10)", RED, mem_scaled.swap_total-mem_scaled.swap_free);
-    printf("^fg(%s)^r(%dx10)", DARK_GREY, mem_scaled.swap_free);
-    printf("^fg()");
+      printf("Swap ");
+      printf("^fg(%s)^r(%ldx10)", RED, mem_scaled.swap_total-mem_scaled.swap_free);
+      printf("^fg(%s)^r(%ldx10)", DARK_GREY, mem_scaled.swap_free);
+      printf("^fg()");
+    }
 
     printf("\n");
     fflush(stdout);
