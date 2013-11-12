@@ -36,6 +36,9 @@ struct mem_info mem;
 struct mem_info mem_scaled;
 long mem_sum;
 
+int battery;
+int battery_scaled;
+
 int length;
 
 int update_cpu(int initial) {
@@ -46,9 +49,12 @@ int update_cpu(int initial) {
   }
 
   FILE* fp = fopen("/proc/stat", "r");
+#ifdef DEBUG
+  printf("/proc/stat opened.\n");
+#endif
 
   if (fp == NULL) {
-    perror("open");
+    perror("fopen");
     return EXIT_FAILURE;
   }
 
@@ -58,6 +64,9 @@ int update_cpu(int initial) {
 
     if (result == NULL) {
       fclose(fp);
+#ifdef DEBUG
+      printf("/proc/stat closed.\n");
+#endif
       perror("fgets");
       return EXIT_FAILURE;
     }
@@ -72,12 +81,18 @@ int update_cpu(int initial) {
 
     if (scanned < 1 || scanned == EOF) {
       fclose(fp);
+#ifdef DEBUG
+      printf("/proc/stat closed.\n");
+#endif
       perror("sscanf");
       return EXIT_FAILURE;
     }
   }
 
   fclose(fp);
+#ifdef DEBUG
+  printf("/proc/stat closed.\n");
+#endif
 
   if (initial) {
     return EXIT_SUCCESS;
@@ -120,70 +135,69 @@ int update_cpu(int initial) {
   return EXIT_SUCCESS;
 }
 
-int update_memory(int initial) {
+int update_memory() {
   FILE* fp = fopen("/proc/meminfo", "r");
+#ifdef DEBUG
+  printf("/proc/meminfo opened.\n");
+#endif
 
   if (fp == NULL) {
-    perror("open");
+    perror("fopen");
     return EXIT_FAILURE;
   }
 
-  int i;
+  unsigned int done = 0;
 
-  for (i = 0; i < 15; i++) {
+  while (done != 64-1) {
     char line[80];
     char* result = fgets(line, 80, fp);
     int scanned;
 
     if (result == NULL) {
       fclose(fp);
+#ifdef DEBUG
+      printf("/proc/meminfo closed.\n");
+#endif
       perror("fgets");
       return EXIT_FAILURE;
     }
 
-    switch (i) {
-    case 0:
-      scanned = sscanf(line, "MemTotal: %ld kB", &mem.total);
-      break;
-    case 1:
-      scanned = sscanf(line, "MemFree: %ld kB", &mem.free);
-      break;
-    case 2:
-      scanned = sscanf(line, "Buffers: %ld kB", &mem.buffered);
-      break;
-    case 3:
-      scanned = sscanf(line, "Cached: %ld kB", &mem.cached);
-      break;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
+    if (strncmp(line, "MemTotal:", 9) == 0) {
+      scanned = sscanf(line, "MemTotal: %d kB", &mem.total);
+      done |= 1;
+    } else if (strncmp(line, "MemFree:", 8) == 0) {
+      scanned = sscanf(line, "MemFree: %d kB", &mem.free);
+      done |= 2;
+    } else if (strncmp(line, "Buffers:", 8) == 0) {
+      scanned = sscanf(line, "Buffers: %d kB", &mem.buffered);
+      done |= 4;
+    } else if (strncmp(line, "Cached:", 7) == 0) {
+      scanned = sscanf(line, "Cached: %d kB", &mem.cached);
+      done |= 8;
+    } else if (strncmp(line, "SwapTotal:", 10) == 0) {
+      scanned = sscanf(line, "SwapTotal: %d kB", &mem.swap_total);
+      done |= 16;
+    } else if (strncmp(line, "SwapFree:", 9) == 0) {
+      scanned = sscanf(line, "SwapFree: %d kB", &mem.swap_free);
+      done |= 32;
+    } else {
       continue;
-    case 13:
-      scanned = sscanf(line, "SwapTotal: %ld kB", &mem.swap_total);
-      break;
-    case 14:
-      scanned = sscanf(line, "SwapFree: %ld kB", &mem.swap_free);
-      break;
     }
 
-    if (scanned < 1 || scanned == EOF) {
+    if (scanned == EOF) {
       fclose(fp);
+#ifdef DEBUG
+      printf("/proc/meminfo closed.\n");
+#endif
       perror("sscanf");
       return EXIT_FAILURE;
     }
   }
 
   fclose(fp);
-
-  if (initial) {
-    return EXIT_SUCCESS;
-  }
+#ifdef DEBUG
+  printf("/proc/meminfo closed.\n");
+#endif
 
   mem_scaled.total = length;
   mem_scaled.free = (int) (0.5 + length*mem.free/mem.total);
@@ -200,6 +214,54 @@ int update_memory(int initial) {
   return EXIT_SUCCESS;
 }
 
+int update_battery() {
+  battery = -1;
+
+  if (access("/sys/class/power_supply/BAT0/capacity", R_OK) == -1) {
+    return EXIT_SUCCESS;
+  }
+
+  FILE* fp = fopen("/sys/class/power_supply/BAT0/capacity", "r");
+#ifdef DEBUG
+  printf("/sys/class/power_supply/BAT0/capacity opened.\n");
+#endif
+
+  if (fp == NULL) {
+    perror("fopen");
+    return EXIT_FAILURE;
+  }
+
+  char line[80];
+  char* got = fgets(line, 80, fp);
+
+  if (got == NULL) {
+    perror("fgets");
+    fclose(fp);
+#ifdef DEBUG
+    printf("/sys/class/power_supply/BAT0/capacity closed.\n");
+#endif
+    return EXIT_FAILURE;
+  }
+
+  fclose(fp);
+#ifdef DEBUG
+  printf("/sys/class/power_supply/BAT0/capacity closed.\n");
+#endif
+  int scanned = sscanf(line, "%d", &battery);
+
+  if (scanned == EOF || scanned < 1) {
+    perror("sscanf");
+    fclose(fp);
+#ifdef DEBUG
+    printf("/sys/class/power_supply/BAT0/capacity closed.\n");
+#endif
+    return EXIT_FAILURE;
+  }
+
+  battery_scaled = (int) (0.5 + length*battery/100);
+  return EXIT_SUCCESS;
+}
+
 int update(int initial) {
   int result = update_cpu(initial);
 
@@ -207,12 +269,23 @@ int update(int initial) {
     return result;
   }
 
-  result = update_memory(initial);
+  if (initial || battery  != -1) {
+    result = update_battery();
+
+    if (result != EXIT_SUCCESS) {
+      return result;
+    }
+  }
+
+  result = update_memory();
   return result;
 }
 
 int init_cpu() {
   FILE* fp = fopen("/proc/stat", "r");
+#ifdef DEBUG
+  printf("/proc/stat opened.\n");
+#endif
 
   if (fp == NULL) {
     perror("fopen");
@@ -227,6 +300,9 @@ int init_cpu() {
 
     if (got == NULL) {
       fclose(fp);
+#ifdef DEBUG
+      printf("/proc/stat closed.\n");
+#endif
       perror("fgets");
       return EXIT_FAILURE;
     }
@@ -238,6 +314,10 @@ int init_cpu() {
     }
   }
 
+  fclose(fp);
+#ifdef DEBUG
+  printf("/proc/stat closed.\n");
+#endif
   cpu_current = malloc(cpus*sizeof(struct cpu_info));
   cpu_old = malloc(cpus*sizeof(struct cpu_info));
   cpu_diff = malloc(cpus*sizeof(struct cpu_info));
@@ -270,7 +350,11 @@ int main(int argc, char** argv) {
 
   length = atoi(argv[1]);
 
-  update(1);
+  int initial_update = update(1);
+
+  if (initial_update != EXIT_SUCCESS) {
+    return EXIT_FAILURE;
+  }
 
   while (1) {
     sleep(1);
@@ -325,6 +409,23 @@ int main(int argc, char** argv) {
       printf("Swap ");
       printf("^fg(%s)^r(%ldx10)", RED, mem_scaled.swap_total-mem_scaled.swap_free);
       printf("^fg(%s)^r(%ldx10)", DARK_GREY, mem_scaled.swap_free);
+      printf("^fg()");
+    }
+
+    if (battery != -1) {
+      printf("   ");
+      printf("Akku ");
+
+      if (battery < 11) {
+        printf("^fg(%s)", RED);
+      } else if (battery < 21) {
+        printf("^fg(%s)", ORANGE);
+      } else {
+        printf("^fg(%s)", GREEN);
+      }
+
+      printf("^r(%dx10)", battery_scaled);
+      printf("^fg(%s)^r(%dx10)", DARK_GREY, length-battery_scaled);
       printf("^fg()");
     }
 
