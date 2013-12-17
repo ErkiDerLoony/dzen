@@ -26,6 +26,21 @@ struct mem_info {
   long swap_free;
 };
 
+struct disk_info {
+  char* name;
+  long reads_completed;
+  long reads_merged;
+  long sectors_read;
+  long ms_reading;
+  long writes_completed;
+  long writes_merged;
+  long sectors_written;
+  long ms_writing;
+  long current_ios;
+  long ms_current_ios;
+  long weighted_ms;
+};
+
 struct rx {
   long long bytes;
   long long packets;
@@ -64,6 +79,11 @@ int* cpu_sum;
 struct mem_info mem;
 struct mem_info mem_scaled;
 long mem_sum;
+
+struct disk_info* disk_current;
+struct disk_info* disk_old;
+struct disk_info* disk_diff;
+int disks;
 
 struct net_info* net_current;
 struct net_info* net_old;
@@ -154,6 +174,77 @@ int update_cpu(int initial) {
     cpu_scaled[i].steal = (int) (0.5 + len*cpu_diff[i].steal/cpu_sum[i]);
     cpu_scaled[i].guest = (int) (0.5 + len*cpu_diff[i].guest/cpu_sum[i]);
     cpu_scaled[i].guest_nice = (int) (0.5 + len*cpu_diff[i].guest_nice/cpu_sum[i]);
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int update_disk(int initial) {
+
+  for (int i = 0; i < disks; i++) {
+    disk_old[i] = disk_current[i];
+  }
+
+  FILE* fp = fopen("/proc/diskstats", "r");
+
+  if (fp == NULL) {
+    perror("fopen");
+    return EXIT_FAILURE;
+  }
+
+  char line[1024];
+  char* got;
+
+  for (int i = 0; i < disks; i++) {
+    got = fgets(line, 1024, fp);
+
+    if (got == NULL) {
+      break;
+    }
+
+    int temp0;
+    int temp1;
+    int scanned = sscanf(line, " %d %d %s %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld",
+                         &temp0, &temp1,
+                         disk_current[i].name,
+                         &(disk_current[i].reads_completed),
+                         &(disk_current[i].reads_merged),
+                         &(disk_current[i].sectors_read),
+                         &(disk_current[i].ms_reading),
+                         &(disk_current[i].writes_completed),
+                         &(disk_current[i].writes_merged),
+                         &(disk_current[i].sectors_written),
+                         &(disk_current[i].ms_writing),
+                         &(disk_current[i].current_ios),
+                         &(disk_current[i].ms_current_ios),
+                         &(disk_current[i].weighted_ms));
+
+    if (scanned < 1 || scanned == EOF) {
+      fclose(fp);
+      perror("sscanf");
+      return EXIT_FAILURE;
+    }
+  }
+
+  fclose(fp);
+
+  if (initial) {
+    return EXIT_SUCCESS;
+  }
+
+  for (int i = 0; i < disks; i++) {
+    disk_diff[i].name = disk_current[i].name;
+    disk_diff[i].reads_completed = disk_current[i].reads_completed - disk_old[i].reads_completed;
+    disk_diff[i].reads_merged = disk_current[i].reads_merged - disk_old[i].reads_completed;
+    disk_diff[i].sectors_read = disk_current[i].sectors_read - disk_old[i].sectors_read;
+    disk_diff[i].ms_reading = disk_current[i].ms_reading - disk_old[i].ms_reading;
+    disk_diff[i].writes_completed = disk_current[i].writes_completed - disk_old[i].writes_completed;
+    disk_diff[i].writes_merged = disk_current[i].writes_merged - disk_old[i].writes_merged;
+    disk_diff[i].sectors_written = disk_current[i].sectors_written - disk_old[i].sectors_written;
+    disk_diff[i].ms_writing = disk_current[i].ms_writing - disk_old[i].ms_writing;
+    disk_diff[i].current_ios = disk_current[i].current_ios - disk_old[i].current_ios;
+    disk_diff[i].ms_current_ios = disk_current[i].ms_current_ios - disk_old[i].ms_current_ios;
+    disk_diff[i].weighted_ms = disk_current[i].weighted_ms - disk_old[i].weighted_ms;
   }
 
   return EXIT_SUCCESS;
@@ -394,6 +485,12 @@ int update(int initial) {
     }
   }
 
+  result = update_disk(initial);
+
+  if (result != EXIT_SUCCESS) {
+    return result;
+  }
+
   result = update_memory();
 
   if (result != EXIT_SUCCESS) {
@@ -466,6 +563,75 @@ int init_cpu() {
   if (cpu_sum == NULL) {
     perror("malloc");
     return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int init_disk() {
+  FILE* fp = fopen("/proc/diskstats", "r");
+
+  if (fp == NULL) {
+    perror("fopen");
+    return EXIT_FAILURE;
+  }
+
+  disks = 0;
+  char line[1024];
+  char* got;
+
+  while ((got = fgets(line, 1024, fp)) != NULL) {
+    disks++;
+
+    if (got == NULL) {
+      fclose(fp);
+      perror("fgets");
+      return EXIT_FAILURE;
+    }
+  }
+
+  disk_current = malloc(disks*sizeof(struct disk_info));
+
+  if (disk_current == NULL) {
+    perror("malloc");
+    return EXIT_FAILURE;
+  }
+
+  disk_old = malloc(disks*sizeof(struct disk_info));
+
+  if (disk_old == NULL) {
+    perror("malloc");
+    return EXIT_FAILURE;
+  }
+
+  disk_diff = malloc(disks*sizeof(struct disk_info));
+
+  if (disk_diff == NULL) {
+    perror("malloc");
+    return EXIT_FAILURE;
+  }
+
+  for (int i = 0; i < disks; i++) {
+    disk_current[i].name = malloc(1024*sizeof(char));
+
+    if (disk_current[i].name == NULL) {
+      perror("malloc");
+      return EXIT_FAILURE;
+    }
+
+    disk_old[i].name = malloc(1024*sizeof(char));
+
+    if (disk_old[i].name == NULL) {
+      perror("malloc");
+      return EXIT_FAILURE;
+    }
+
+    disk_diff[i].name = malloc(1024*sizeof(char));
+
+    if (disk_diff[i].name == NULL) {
+      perror("malloc");
+      return EXIT_FAILURE;
+    }
   }
 
   return EXIT_SUCCESS;
@@ -586,6 +752,16 @@ void free_all() {
   free(cpu_scaled);
   free(cpu_sum);
 
+  for (int i = 0; i < disks; i++) {
+    free(disk_current[i].name);
+    free(disk_old[i].name);
+    free(disk_diff[i].name);
+  }
+
+  free(disk_current);
+  free(disk_old);
+  free(disk_diff);
+
   for (int i = 0; i < nets; i++) {
     free(net_current[i].name);
     free(net_old[i].name);
@@ -657,6 +833,12 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  initialized = init_disk();
+
+  if (initialized != EXIT_SUCCESS) {
+    return EXIT_FAILURE;
+  }
+
   initialized = init_net();
 
   if (initialized != EXIT_SUCCESS) {
@@ -671,6 +853,8 @@ int main(int argc, char** argv) {
   const char* MAGENTA = "#b400a3";
   const char* GREY = "#969696";
   const char* DARK_GREY = "#444444";
+
+  const int SECTOR_SIZE_IN_BYTES = 512;
 
   length = atoi(argv[1]);
 
@@ -779,6 +963,7 @@ int main(int argc, char** argv) {
           char* size = format(net_diff[i].r.bytes);
 
           if (size == NULL) {
+            free_all();
             return EXIT_FAILURE;
           }
 
@@ -787,6 +972,34 @@ int main(int argc, char** argv) {
           size = format(net_diff[i].t.bytes);
 
           if (size == NULL) {
+            free_all();
+            return EXIT_FAILURE;
+          }
+
+          printf("^fg(%s)%s", RED, size);
+          free(size);
+          printf("^fg()");
+        }
+      }
+
+      for (int i = 0; i < disks; i++) {
+
+        if (strncmp(disk_diff[i].name, "sda", 4) == 0 ||
+            strncmp(disk_diff[i].name, "sdb", 4) == 0) {
+          printf("   %s ", disk_diff[i].name);
+          char* size = format(disk_diff[i].sectors_read*SECTOR_SIZE_IN_BYTES);
+
+          if (size == NULL) {
+            free_all();
+            return EXIT_FAILURE;
+          }
+
+          printf("^fg(%s)%s ", GREEN, size);
+          free(size);
+          size = format(disk_diff[i].sectors_written*SECTOR_SIZE_IN_BYTES);
+
+          if (size == NULL) {
+            free_all();
             return EXIT_FAILURE;
           }
 
