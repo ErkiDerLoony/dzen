@@ -85,9 +85,6 @@ int update_cpu(int initial) {
   }
 
   FILE* fp = fopen("/proc/stat", "r");
-#ifdef DEBUG
-  printf("/proc/stat opened.\n");
-#endif
 
   if (fp == NULL) {
     perror("fopen");
@@ -100,9 +97,6 @@ int update_cpu(int initial) {
 
     if (result == NULL) {
       fclose(fp);
-#ifdef DEBUG
-      printf("/proc/stat closed.\n");
-#endif
       perror("fgets");
       return EXIT_FAILURE;
     }
@@ -117,18 +111,12 @@ int update_cpu(int initial) {
 
     if (scanned < 1 || scanned == EOF) {
       fclose(fp);
-#ifdef DEBUG
-      printf("/proc/stat closed.\n");
-#endif
       perror("sscanf");
       return EXIT_FAILURE;
     }
   }
 
   fclose(fp);
-#ifdef DEBUG
-  printf("/proc/stat closed.\n");
-#endif
 
   if (initial) {
     return EXIT_SUCCESS;
@@ -278,9 +266,6 @@ int update_net(int initial) {
 
 int update_memory() {
   FILE* fp = fopen("/proc/meminfo", "r");
-#ifdef DEBUG
-  printf("/proc/meminfo opened.\n");
-#endif
 
   if (fp == NULL) {
     perror("fopen");
@@ -296,9 +281,6 @@ int update_memory() {
 
     if (result == NULL) {
       fclose(fp);
-#ifdef DEBUG
-      printf("/proc/meminfo closed.\n");
-#endif
       perror("fgets");
       return EXIT_FAILURE;
     }
@@ -327,18 +309,12 @@ int update_memory() {
 
     if (scanned == EOF) {
       fclose(fp);
-#ifdef DEBUG
-      printf("/proc/meminfo closed.\n");
-#endif
       perror("sscanf");
       return EXIT_FAILURE;
     }
   }
 
   fclose(fp);
-#ifdef DEBUG
-  printf("/proc/meminfo closed.\n");
-#endif
 
   mem_scaled.total = length;
   mem_scaled.free = (int) (0.5 + length*mem.free/mem.total);
@@ -430,9 +406,6 @@ int update(int initial) {
 
 int init_cpu() {
   FILE* fp = fopen("/proc/stat", "r");
-#ifdef DEBUG
-  printf("/proc/stat opened.\n");
-#endif
 
   if (fp == NULL) {
     perror("fopen");
@@ -447,9 +420,6 @@ int init_cpu() {
 
     if (got == NULL) {
       fclose(fp);
-#ifdef DEBUG
-      printf("/proc/stat closed.\n");
-#endif
       perror("fgets");
       return EXIT_FAILURE;
     }
@@ -462,9 +432,6 @@ int init_cpu() {
   }
 
   fclose(fp);
-#ifdef DEBUG
-  printf("/proc/stat closed.\n");
-#endif
 
   cpu_current = malloc(cpus*sizeof(struct cpu_info));
 
