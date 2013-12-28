@@ -845,7 +845,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  const char* BLUE = "#0046bf";
+  const char* BLUE = "#0078bf";
   const char* GREEN = "#00bf00";
   const char* ORANGE = "#bf9900";
   const char* RED = "#b62300";
