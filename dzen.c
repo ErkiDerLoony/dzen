@@ -958,7 +958,9 @@ int main(int argc, char** argv) {
 
       for (int i = 0; i < nets; i++) {
 
-        if (strncmp(net_diff[i].name, "lo", 3) != 0 && strncmp(net_diff[i].name, "virbr0", 7) != 0) {
+        if (strncmp(net_diff[i].name, "lo", 3) != 0
+            && strncmp(net_diff[i].name, "virbr0", 7) != 0
+            && strncmp(net_diff[i].name, "eth1", 4) != 0) {
           printf("   %s ", net_diff[i].name);
           char* size = format(net_diff[i].r.bytes);
 
@@ -984,8 +986,7 @@ int main(int argc, char** argv) {
 
       for (int i = 0; i < disks; i++) {
 
-        if (strncmp(disk_diff[i].name, "sda", 4) == 0 ||
-            strncmp(disk_diff[i].name, "sdb", 4) == 0) {
+        if (strncmp(disk_diff[i].name, "sda", 4) == 0) {
           printf("   %s ", disk_diff[i].name);
           char* size = format(disk_diff[i].sectors_read*SECTOR_SIZE_IN_BYTES);
 
