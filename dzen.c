@@ -161,7 +161,7 @@ int update_cpu(int initial) {
     if (i == 0) {
       len = length;
     } else {
-      len = length/2;
+      len = (int)(0.75*length);
     }
 
     cpu_scaled[i].user = (int) (0.5 + len*cpu_diff[i].user/cpu_sum[i]);
@@ -872,15 +872,17 @@ int main(int argc, char** argv) {
       return EXIT_FAILURE;
     }
 
+    printf("CPUs ");
+
     for (int i = 1; i < cpus; i++) {
-      printf("CPU ");
+      //printf("CPU ");
       int len;
 
       if (i == 0) {
         len = length;
       } else {
-        len = length/2;
-        printf("%d ", i);
+        len = (int)(0.75*length);
+        //printf("%d ", i);
       }
 
       printf("^fg(%s)^r(%dx10)", BLUE, cpu_scaled[i].nice);
@@ -895,10 +897,10 @@ int main(int argc, char** argv) {
       printf("^fg(%s)^r(%dx10)", DARK_GREY, len-cpu_scaled[i].nice-cpu_scaled[i].user-cpu_scaled[i].system-cpu_scaled[i].irq-cpu_scaled[i].softirq-cpu_scaled[i].iowait-cpu_scaled[i].steal-cpu_scaled[i].guest-cpu_scaled[i].guest_nice);
       printf("^fg()");
 
-      printf("   ");
+      printf(" ");
     }
 
-    printf("RAM ");
+    printf("   RAM ");
     printf("^fg(%s)^r(%ldx10)", GREEN, mem_scaled.total-mem_scaled.free-mem_scaled.buffered-mem_scaled.cached);
     printf("^fg(%s)^r(%ldx10)", BLUE, mem_scaled.buffered);
     printf("^fg(%s)^r(%ldx10)", ORANGE, mem_scaled.cached);
@@ -984,8 +986,7 @@ int main(int argc, char** argv) {
 
       for (int i = 0; i < disks; i++) {
 
-        if (strncmp(disk_diff[i].name, "sda", 4) == 0 ||
-            strncmp(disk_diff[i].name, "sdb", 4) == 0) {
+        if (strncmp(disk_diff[i].name, "sda", 4) == 0) {
           printf("   %s ", disk_diff[i].name);
           char* size = format(disk_diff[i].sectors_read*SECTOR_SIZE_IN_BYTES);
 
