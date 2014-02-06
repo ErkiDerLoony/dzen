@@ -960,7 +960,9 @@ int main(int argc, char** argv) {
 
       for (int i = 0; i < nets; i++) {
 
-        if (strncmp(net_diff[i].name, "lo", 3) != 0 && strncmp(net_diff[i].name, "virbr0", 7) != 0) {
+        if (strncmp(net_diff[i].name, "lo", 3) != 0
+            && strncmp(net_diff[i].name, "virbr0", 7) != 0
+            && strncmp(net_diff[i].name, "eth1", 4) != 0) {
           printf("   %s ", net_diff[i].name);
           char* size = format(net_diff[i].r.bytes);
 
