@@ -154,8 +154,7 @@ public:
   }
 
   void run() {
-    int steps = 0;
-    const int limit = 10;
+    uint steps = 0;
     chrono::steady_clock::time_point start;
     chrono::milliseconds offset(0);
     cpu_info before(read_cpu_info("/proc/stat"));
@@ -170,7 +169,6 @@ public:
       chrono::milliseconds sleep = chrono::seconds(1) - offset;
       this_thread::sleep_for(sleep);
       start = chrono::steady_clock::now();
-      steps++;
 
       // Update local CPU information.
       cpu_info after(read_cpu_info("/proc/stat"));
@@ -184,45 +182,39 @@ public:
 
       cout << endl;
 
-      // Update remote CPU information.
-      if (steps >= limit || remote_diffs.empty()) {
-        steps = 0;
+      // Update CPU information of one remote host.
+      const string host = hosts[steps];
+      optional<cpu_info> now(read_remote_cpu_info(host));
 
-        for (const string host : hosts) {
-          optional<cpu_info> now(read_remote_cpu_info(host));
-
-          if (now && remotes[host]) {
-            cpu_info n = now.value_or(cpu_info());
-            cpu_info b = remotes[host].value_or(cpu_info());
-            remote_diffs[host] = optional<cpu_info>(n - b);
-          } else {
-            remote_diffs.erase(host);
-          }
-
-          if (now) {
-            remotes[host] = now;
-          }
-        }
-
-        stringstream buffer;
-        buffer << "^cs()" << endl;
-
-        for (const string host : hosts) {
-          buffer << host << ": ";
-
-          for (uint i = 0; i < padding - host.length(); i++) {
-            buffer << " ";
-          }
-
-          if (remote_diffs.find(host) != remote_diffs.end()) {
-            buffer << "CPU " << print(remote_diffs[host].value_or(cpu_info()).total, 2 * width) << endl;
-          } else {
-            buffer << "<unreachable>" << endl;
-          }
-        }
-
-        cout << buffer.str();
+      if (now && remotes[host]) {
+        cpu_info n = now.value_or(cpu_info());
+        cpu_info b = remotes[host].value_or(cpu_info());
+        remote_diffs[host] = optional<cpu_info>(n - b);
+      } else {
+        remote_diffs.erase(host);
       }
+
+      if (now) {
+        remotes[host] = now;
+      }
+
+      stringstream buffer;
+
+      for (const string host : hosts) {
+        buffer << host << ": ";
+
+        for (uint i = 0; i < padding - host.length(); i++) {
+          buffer << " ";
+        }
+
+        if (remote_diffs.find(host) != remote_diffs.end()) {
+          buffer << "CPU " << print(remote_diffs[host].value_or(cpu_info()).total, 2 * width) << endl;
+        } else {
+          buffer << "<unreachable>" << endl;
+        }
+      }
+
+      cout << buffer.str();
 
       offset = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
 
@@ -230,6 +222,12 @@ public:
         debug << "Update took < 1 ms." << endl;
       } else {
         debug << "Update took " << offset.count() << " ms." << endl;
+      }
+
+      if (steps == hosts.size() - 1) {
+        steps = 0;
+      } else {
+        steps++;
       }
     }
   }
