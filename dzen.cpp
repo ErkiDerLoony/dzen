@@ -1,3 +1,5 @@
+#include "command_line_parser.hpp"
+
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -185,39 +187,41 @@ public:
       cout << endl;
 
       // Update CPU info of one remote host.
-      const string host = hosts[steps];
-      optional<cpu_info> now(read_remote_cpu_info(host));
+      if (!hosts.empty()) {
+        const string host = hosts[steps];
+        optional<cpu_info> now(read_remote_cpu_info(host));
 
-      if (now && remotes[host]) {
-        cpu_info n = now.value_or(cpu_info());
-        cpu_info b = remotes[host].value_or(cpu_info());
-        remote_diffs[host] = optional<cpu_info>(n - b);
-      } else {
-        remote_diffs.erase(host);
-      }
-
-      if (now) {
-        remotes[host] = now;
-      }
-
-      // Print remote CPU info.
-      stringstream buffer;
-
-      for (const string host : hosts) {
-        buffer << host << ": ";
-
-        for (uint i = 0; i < padding - host.length(); i++) {
-          buffer << " ";
-        }
-
-        if (remote_diffs.find(host) != remote_diffs.end()) {
-          buffer << "CPU " << print(remote_diffs[host].value_or(cpu_info()).total, 2 * width) << endl;
+        if (now && remotes[host]) {
+          cpu_info n = now.value_or(cpu_info());
+          cpu_info b = remotes[host].value_or(cpu_info());
+          remote_diffs[host] = optional<cpu_info>(n - b);
         } else {
-          buffer << "<unreachable>" << endl;
+          remote_diffs.erase(host);
         }
-      }
 
-      cout << buffer.str();
+        if (now) {
+          remotes[host] = now;
+        }
+
+        // Print remote CPU info.
+        stringstream buffer;
+
+        for (const string host : hosts) {
+          buffer << host << ": ";
+
+          for (uint i = 0; i < padding - host.length(); i++) {
+            buffer << " ";
+          }
+
+          if (remote_diffs.find(host) != remote_diffs.end()) {
+            buffer << "CPU " << print(remote_diffs[host].value_or(cpu_info()).total, 2 * width) << endl;
+          } else {
+            buffer << "<unreachable>" << endl;
+          }
+        }
+
+        cout << buffer.str();
+      }
 
       offset = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
 
@@ -331,18 +335,49 @@ const string dzen::GREY = "#969696";
 const string dzen::DARK_GREY = "#444444";
 
 int main(int argc, char** argv) {
+  command_line_parser args(argc, argv);
 
-  if (argc < 2) {
-    cerr << "Usage: " << argv[0] << " <width>" << endl;
+  if (args.has({"--help"})) {
+    cerr << "Usage: dzen [--width <PIXELS>] [--help] [--remotes <HOSTNAMES>]" << endl;
     return EXIT_SUCCESS;
   }
 
-  stringstream buffer;
-  buffer << argv[1];
-  long width;
-  buffer >> width;
+  long width = 100;
 
-  vector<string> remotes{"pallando", "alatar", "radagast", "sauron", "ulmo", "irmo", "melko"};
+  if (args.has({"--width"})) {
+    optional<string> arg = args.pop({"--width"});
+
+    if (arg) {
+      stringstream buffer;
+      buffer << arg.value();
+      buffer >> width;
+    } else {
+      cerr << "You must specify a width in pixels!" << endl;
+      return EXIT_FAILURE;
+    }
+  }
+
+  vector<string> remotes;
+
+  if (args.has({"--remotes"})) {
+    optional<string> arg = args.pop({"--remotes"});
+
+    if (arg) {
+      istringstream s(arg.value());
+      string remote;
+
+      while (getline(s, remote, ',')) {
+        remotes.push_back(remote);
+      }
+
+    } else {
+      cerr << "You must specify at least one remote (or multiple remotes separated by commas)!" << endl;
+      return EXIT_FAILURE;
+    }
+  }
+
+  args.warn();
+
   dzen(width, remotes).run();
 
   return EXIT_SUCCESS;
