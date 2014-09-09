@@ -170,10 +170,12 @@ public:
       this_thread::sleep_for(sleep);
       start = chrono::steady_clock::now();
 
-      // Update local CPU information.
+      // Update local CPU info.
       cpu_info after(read_cpu_info("/proc/stat"));
       cpu_info diff(after - before);
       before = after;
+
+      // Print local CPU info.
       cout << "^tw()CPUs";
 
       for (auto cpu : diff.cpus) {
@@ -182,7 +184,7 @@ public:
 
       cout << endl;
 
-      // Update CPU information of one remote host.
+      // Update CPU info of one remote host.
       const string host = hosts[steps];
       optional<cpu_info> now(read_remote_cpu_info(host));
 
@@ -198,6 +200,7 @@ public:
         remotes[host] = now;
       }
 
+      // Print remote CPU info.
       stringstream buffer;
 
       for (const string host : hosts) {
