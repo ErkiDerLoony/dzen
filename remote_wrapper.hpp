@@ -9,13 +9,15 @@
 class remote_wrapper : public module {
 
 public:
-  remote_wrapper(const std::string, std::unique_ptr<module>);
+  remote_wrapper(const std::string, const std::string, std::unique_ptr<module>);
   remote_wrapper(remote_wrapper&&);
   virtual ~remote_wrapper();
   virtual void update();
   virtual std::string format() const;
 
 private:
+  bool ok;
+  const std::string remote_filename;
   const std::string hostname;
   std::unique_ptr<module> inner;
 

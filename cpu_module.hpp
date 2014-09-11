@@ -18,16 +18,16 @@ public:
 private:
 
   struct cpu {
-    long user;
-    long nice;
-    long system;
-    long idle;
-    long iowait;
-    long irq;
-    long softirq;
-    long steal;
-    long guest;
-    long guest_nice;
+    ulong user;
+    ulong nice;
+    ulong system;
+    ulong idle;
+    ulong iowait;
+    ulong irq;
+    ulong softirq;
+    ulong steal;
+    ulong guest;
+    ulong guest_nice;
 
     cpu();
   };
@@ -47,7 +47,7 @@ private:
   const bool parts;
   const int width;
 
-  void print(const cpu&, std::stringstream&) const;
+  void output(const cpu&, std::stringstream&) const;
   inline long sum(const cpu&) const;
   cpu normalize(const cpu&) const;
 

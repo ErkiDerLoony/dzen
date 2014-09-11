@@ -2,6 +2,7 @@
 #define MODULES_HPP
 
 #include "cpu_module.hpp"
+#include "mem_module.hpp"
 #include "remote_wrapper.hpp"
 
 #include <string>
@@ -15,6 +16,7 @@ public:
 
 private:
   cpu_module cpu;
+  mem_module mem;
 
 }; // class local_modules
 
@@ -30,6 +32,7 @@ public:
 private:
   const std::string host;
   remote_wrapper cpu;
+  remote_wrapper mem;
 
 }; // class remote_modules
 

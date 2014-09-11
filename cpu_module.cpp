@@ -54,36 +54,33 @@ long cpu_module::sum(const cpu_module::cpu& cpu) const {
 cpu_module::cpu cpu_module::normalize(const cpu_module::cpu& c) const {
   cpu_module::cpu result;
   const long s = sum(c);
-  result.user = width * c.user / s;
-  result.nice = width * c.nice / s;
-  result.system = width * c.system / s;
+  result.user = static_cast<long>(0.5 + width * c.user / s);
+  result.nice = static_cast<long>(0.5 + width * c.nice / s);
+  result.system = static_cast<long>(0.5 + width * c.system / s);
+  result.iowait = static_cast<long>(0.5 + width * c.iowait / s);
+  result.irq = static_cast<long>(0.5 + width * c.irq / s);
+  result.softirq = static_cast<long>(0.5 + width * c.softirq / s);
+  result.steal = static_cast<long>(0.5 + width * c.steal / s);
+  result.guest = static_cast<long>(0.5 + width * c.guest / s);
+  result.guest_nice = static_cast<long>(0.5 + width * c.guest_nice / s);
   result.idle = 0;
-  result.iowait = width * c.iowait / s;
-  result.irq = width * c.irq / s;
-  result.softirq = width * c.softirq / s;
-  result.steal = width * c.steal / s;
-  result.guest = width * c.guest / s;
-  result.guest_nice = width * c.guest_nice / s;
   result.idle = width - sum(result);
   return result;
 }
 
-inline void p(ostream& stream, const long& value, const string& colour) {
-  stream << "^fg(" << colour << ")^r(" << value << "x" << constants.height << ")";
-}
-
-void cpu_module::print(const cpu& diff, stringstream& buffer) const {
+void cpu_module::output(const cpu& diff, stringstream& buffer) const {
   const cpu_module::cpu n = normalize(diff);
-  p(buffer, n.nice, constants.blue);
-  p(buffer, n.user, constants.green);
-  p(buffer, n.system, constants.red);
-  p(buffer, n.irq, constants.orange);
-  p(buffer, n.softirq, constants.magenta);
-  p(buffer, n.iowait, constants.grey);
-  p(buffer, n.steal, constants.cyan);
-  p(buffer, n.guest, constants.cyan);
-  p(buffer, n.guest_nice, constants.cyan);
-  p(buffer, n.idle, constants.dark_grey);
+  print(buffer, n.nice, constants.blue);
+  print(buffer, n.user, constants.green);
+  print(buffer, n.system, constants.red);
+  print(buffer, n.irq, constants.orange);
+  print(buffer, n.softirq, constants.magenta);
+  print(buffer, n.iowait, constants.grey);
+  print(buffer, n.steal, constants.cyan);
+  print(buffer, n.guest, constants.cyan);
+  print(buffer, n.guest_nice, constants.cyan);
+  print(buffer, n.idle, constants.dark_grey);
+  buffer << "^fg()";
 }
 
 string cpu_module::format() const {
@@ -91,14 +88,14 @@ string cpu_module::format() const {
 
   if (total) {
     buffer << "CPU ";
-    print(diff.total, buffer);
+    output(diff.total, buffer);
   }
 
   if (parts) {
     buffer << "CPUs ";
 
     for (uint i = 0; i < diff.cpus.size(); i++) {
-      print(diff.cpus[i], buffer);
+      output(diff.cpus[i], buffer);
 
       if (i < diff.cpus.size() - 1) {
         buffer << " ";

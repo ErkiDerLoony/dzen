@@ -2,6 +2,7 @@
 #define MODULE_HPP
 
 #include <string>
+#include <ostream>
 
 class module {
 
@@ -12,6 +13,9 @@ public:
 
   virtual void update() = 0;
   virtual std::string format() const = 0;
+
+protected:
+  void print(std::ostream&, const long&, const std::string&) const;
 
 private:
   const std::string _filename;
