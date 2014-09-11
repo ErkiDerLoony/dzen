@@ -10,7 +10,7 @@
 class cpu_module : public module {
 
 public:
-  cpu_module(const std::string);
+  cpu_module(const std::string, const bool total, const bool parts, const int width);
   virtual ~cpu_module();
   virtual void update();
   virtual std::string format() const;
@@ -28,6 +28,8 @@ private:
     long steal;
     long guest;
     long guest_nice;
+
+    cpu();
   };
 
   struct cpu_info {
@@ -40,7 +42,14 @@ private:
   };
 
   cpu_info previous;
-  cpu_info state;
+  cpu_info diff;
+  const bool total;
+  const bool parts;
+  const int width;
+
+  void print(const cpu&, std::stringstream&) const;
+  inline long sum(const cpu&) const;
+  cpu normalize(const cpu&) const;
 
   friend cpu operator-(const cpu&, const cpu&);
   friend cpu_info operator-(const cpu_info&, const cpu_info&);

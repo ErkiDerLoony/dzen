@@ -9,7 +9,7 @@
 class local_modules final {
 
 public:
-  local_modules();
+  local_modules(const int);
   void update();
   std::string format() const;
 
@@ -21,7 +21,7 @@ private:
 class remote_modules final {
 
 public:
-  remote_modules(const std::string);
+  remote_modules(const std::string, const int);
   remote_modules(remote_modules&&);
   void update();
   std::string format() const;
