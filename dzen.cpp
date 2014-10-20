@@ -45,12 +45,15 @@ public:
       chrono::milliseconds pause = chrono::seconds(1) - offset;
       this_thread::sleep_for(pause);
       start = chrono::steady_clock::now();
+      string updated = "(only local)";
 
       local.update();
       cout << "^tw()" << local.format() << endl;
 
       if (steps < hosts.size()) {
         hosts[steps].update();
+        updated = "for " + hosts[steps].hostname();
+
         stringstream buffer;
 
         for (remote_modules& host : hosts) {
@@ -70,9 +73,9 @@ public:
       offset = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
 
       if (offset.count() == 0) {
-        debug << "Update took < 1 ms." << endl;
+        debug << "Update " << updated << " took < 1 ms." << endl;
       } else {
-        debug << "Update took " << offset.count() << " ms." << endl;
+        debug << "Update " << updated << " took " << offset.count() << " ms." << endl;
       }
 
       if (steps >= pause_steps + hosts.size() - 1) {
