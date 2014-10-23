@@ -138,6 +138,8 @@ cpu_module::cpu::cpu() : user(0), nice(0), system(0), idle(0), iowait(0),
 istream& operator>>(istream& stream, cpu_module::cpu& cpu) {
   stream >> cpu.user >> cpu.nice >> cpu.system >> cpu.idle >> cpu.iowait
          >> cpu.irq >> cpu.softirq >> cpu.steal >> cpu.guest >> cpu.guest_nice;
+  cpu.user -= cpu.guest;
+  cpu.nice -= cpu.guest_nice;
   return stream;
 }
 
