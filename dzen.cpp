@@ -28,46 +28,28 @@ public:
     uint steps = 0;
     chrono::steady_clock::time_point start;
     chrono::milliseconds offset(0);
+    uint delay = 0;
+    const uint delay_limit = hosts.size();
 
     local.update();
-
-    for (remote_modules& host : hosts) {
-      host.update();
-    }
-
-    this_thread::sleep_for(chrono::seconds(1));
-
-    for (remote_modules& host : hosts) {
-      host.update();
-    }
 
     while (true) {
       chrono::milliseconds pause = chrono::seconds(1) - offset;
       this_thread::sleep_for(pause);
       start = chrono::steady_clock::now();
       string updated = "(only local)";
+      stringstream buffer;
 
       local.update();
-      cout << "^tw()" << local.format() << endl;
+      buffer << "^tw()" << local.format() << endl;
 
       if (steps < hosts.size()) {
         hosts[steps].update();
         updated = "for " + hosts[steps].hostname();
 
-        stringstream buffer;
-
-        for (remote_modules& host : hosts) {
-          const string name = host.hostname();
-          buffer << name << ": ";
-
-          for (uint i = 0; i < padding - name.size(); i++) {
-            buffer << " ";
-          }
-
-          buffer << host.format() << endl;
+        if (delay < delay_limit) {
+          delay++;
         }
-
-        cout << buffer.str();
       }
 
       offset = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
@@ -78,12 +60,29 @@ public:
         debug << "Update " << updated << " took " << offset.count() << " ms." << endl;
       }
 
+      for (remote_modules& host : hosts) {
+        const string name = host.hostname();
+        buffer << name << ": ";
+
+        for (uint i = 0; i < padding - name.size(); i++) {
+          buffer << " ";
+        }
+
+        if (delay == delay_limit) {
+          buffer << host.format() << endl;
+        } else {
+          buffer << "<waiting for initial update>" << endl;
+        }
+      }
+
       if (steps >= pause_steps + hosts.size() - 1) {
         steps = 0;
       } else {
         steps++;
       }
 
+      cout << buffer.str();
+      flush(cout);
     } // while(true)
 
   } // void run()
@@ -147,7 +146,7 @@ int main(int argc, char** argv) {
       while (getline(s, remote, ',')) {
         const string host(remote);
 
-        if (remotes.size() < 10) {
+        if (remotes.size() < 15) {
           remotes.push_back(remote_modules(host, width));
         } else {
           cerr << "Only 10 remotes are supported! Ignoring " << host << "!" << endl;

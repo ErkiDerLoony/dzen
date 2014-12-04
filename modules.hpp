@@ -3,6 +3,8 @@
 
 #include "cpu_module.hpp"
 #include "mem_module.hpp"
+#include "who_module.hpp"
+#include "load_module.hpp"
 #include "remote_wrapper.hpp"
 
 #include <string>
@@ -17,6 +19,7 @@ public:
 private:
   cpu_module cpu;
   mem_module mem;
+  load_module load;
 
 }; // class local_modules
 
@@ -34,6 +37,7 @@ private:
   remote_wrapper cpu;
   remote_wrapper mem;
   remote_wrapper who;
+  remote_wrapper load;
 
 }; // class remote_modules
 
