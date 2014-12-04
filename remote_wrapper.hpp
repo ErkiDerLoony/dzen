@@ -17,7 +17,7 @@ public:
 
 private:
   bool ok;
-  const std::string remote_filename;
+  const std::string remote_command;
   const std::string hostname;
   std::unique_ptr<module> inner;
 

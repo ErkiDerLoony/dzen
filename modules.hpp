@@ -33,6 +33,7 @@ private:
   const std::string host;
   remote_wrapper cpu;
   remote_wrapper mem;
+  remote_wrapper who;
 
 }; // class remote_modules
 

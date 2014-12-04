@@ -146,7 +146,12 @@ int main(int argc, char** argv) {
 
       while (getline(s, remote, ',')) {
         const string host(remote);
-        remotes.push_back(remote_modules(host, width));
+
+        if (remotes.size() < 10) {
+          remotes.push_back(remote_modules(host, width));
+        } else {
+          cerr << "Only 10 remotes are supported! Ignoring " << host << "!" << endl;
+        }
       }
 
     } else {
