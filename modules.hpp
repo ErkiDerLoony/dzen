@@ -6,6 +6,7 @@
 #include "who_module.hpp"
 #include "load_module.hpp"
 #include "remote_wrapper.hpp"
+#include "net_module.hpp"
 
 #include <string>
 
@@ -20,6 +21,7 @@ private:
   cpu_module cpu;
   mem_module mem;
   load_module load;
+  net_module net;
 
 }; // class local_modules
 

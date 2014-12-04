@@ -6,13 +6,15 @@ using namespace std;
 
 local_modules::local_modules(const int width) : cpu("/proc/stat", false, true, static_cast<int>(0.75*width)),
                                                 mem("/proc/meminfo", width),
-                                                load("/proc/loadavg") {
+                                                load("/proc/loadavg"),
+                                                net("/proc/net/dev") {
 }
 
 void local_modules::update() {
   cpu.update();
   mem.update();
   load.update();
+  net.update();
 }
 
 string local_modules::format() const {
@@ -22,6 +24,8 @@ string local_modules::format() const {
   buffer << load.format();
   buffer << "   ";
   buffer << mem.format();
+  buffer << "   ";
+  buffer << net.format();
   return buffer.str();
 }
 

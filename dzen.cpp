@@ -1,5 +1,4 @@
 #include "command_line_parser.hpp"
-#include "log.hpp"
 #include "modules.hpp"
 
 #include <cstdlib>
@@ -52,14 +51,6 @@ public:
         }
       }
 
-      offset = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
-
-      if (offset.count() == 0) {
-        debug << "Update " << updated << " took < 1 ms." << endl;
-      } else {
-        debug << "Update " << updated << " took " << offset.count() << " ms." << endl;
-      }
-
       for (remote_modules& host : hosts) {
         const string name = host.hostname();
         buffer << name << ": ";
@@ -83,6 +74,7 @@ public:
 
       cout << buffer.str();
       flush(cout);
+      offset = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
     } // while(true)
 
   } // void run()
