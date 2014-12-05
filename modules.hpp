@@ -7,6 +7,7 @@
 #include "load_module.hpp"
 #include "remote_wrapper.hpp"
 #include "net_module.hpp"
+#include "uptime_module.hpp"
 
 #include <string>
 
@@ -22,6 +23,7 @@ private:
   mem_module mem;
   load_module load;
   net_module net;
+  uptime_module uptime;
 
 }; // class local_modules
 
@@ -40,6 +42,7 @@ private:
   remote_wrapper mem;
   remote_wrapper who;
   remote_wrapper load;
+  remote_wrapper uptime;
 
 }; // class remote_modules
 

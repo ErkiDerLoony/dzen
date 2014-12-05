@@ -28,7 +28,7 @@ public:
     chrono::steady_clock::time_point start;
     chrono::milliseconds offset(0);
     uint delay = 0;
-    const uint delay_limit = hosts.size();
+    const uint delay_limit = 2*hosts.size();
 
     local.update();
 
