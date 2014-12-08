@@ -9,7 +9,7 @@
 class load_module : public module {
 
 public:
-  load_module(const std::string);
+  load_module(const std::string, const std::string);
   virtual ~load_module();
 
   virtual void update();
@@ -17,6 +17,7 @@ public:
 
 private:
   float avg1, avg5, avg15;
+  uint nproc;
 
 }; // class load_module
 

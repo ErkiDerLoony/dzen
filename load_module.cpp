@@ -8,7 +8,7 @@
 
 using namespace std;
 
-load_module::load_module(const string filename) : module(filename) {}
+load_module::load_module(const string loadavg, const string cpuinfo) : module({loadavg, cpuinfo}) {}
 
 load_module::~load_module() {}
 
@@ -18,6 +18,16 @@ void load_module::update() {
   getline(in, line);
   stringstream s(line);
   s >> avg1 >> avg5 >> avg15;
+
+  ifstream in2(filename()[1]);
+  nproc = 0;
+
+  while (getline(in2, line)) {
+
+    if (line.substr(0, 9) == "processor") {
+      nproc++;
+    }
+  }
 }
 
 const std::string interpolate(const std::string begin, const std::string finish, const double fraction) {
@@ -55,15 +65,19 @@ const std::string interpolate(const std::string begin, const std::string finish,
   return start.get();
 }
 
-void output(const float value, stringstream& buffer) {
+void output(const float value, const uint nproc, stringstream& buffer) {
   buffer << "^fg(";
 
-  if (value < 8) {
-    buffer << interpolate(constants.green, constants.yellow, value / 10.0);
+  const float limit0 = nproc/2.0;
+  const float limit1 = nproc;
+  const float limit2 = 1.5*nproc;
+
+  if (value < limit0) {
+    buffer << interpolate(constants.green, constants.yellow, value / limit0);
   } else if (value < 12) {
-    buffer << interpolate(constants.yellow, constants.orange, (value - 8.0) / 4.0);
+    buffer << interpolate(constants.yellow, constants.orange, (value - limit0) / (limit1 - limit0));
   } else if (value < 40) {
-    buffer << interpolate(constants.orange, constants.red, (value - 12.0) / (40.0 - 12.0));
+    buffer << interpolate(constants.orange, constants.red, (value - limit1) / (limit2 - limit1));
   } else {
     buffer << constants.red;
   }
@@ -86,10 +100,10 @@ void output(const float value, stringstream& buffer) {
 pair<string, bool> load_module::format() const {
   stringstream buffer;
   buffer << fixed;
-  output(avg1, buffer);
+  output(avg1, nproc, buffer);
   buffer << " ";
-  output(avg5, buffer);
+  output(avg5, nproc, buffer);
   buffer << " ";
-  output(avg15, buffer);
+  output(avg15, nproc, buffer);
   return make_pair(buffer.str(), false);
 }

@@ -6,11 +6,12 @@
 #include <string>
 #include <memory>
 #include <utility>
+#include <vector>
 
 class remote_wrapper : public module {
 
 public:
-  remote_wrapper(const std::string, const std::string, std::unique_ptr<module>);
+  remote_wrapper(const std::vector<std::string>, const std::string, std::unique_ptr<module>);
   remote_wrapper(remote_wrapper&&);
   virtual ~remote_wrapper();
   virtual void update();
@@ -18,7 +19,7 @@ public:
 
 private:
   bool ok;
-  const std::string remote_command;
+  const std::vector<std::string> remote_commands;
   const std::string hostname;
   std::unique_ptr<module> inner;
 
