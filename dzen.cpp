@@ -1,6 +1,7 @@
 #include "command_line_parser.hpp"
 #include "modules.hpp"
 
+#include <utility>
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -28,7 +29,12 @@ public:
     chrono::steady_clock::time_point start;
     chrono::milliseconds offset(0);
     uint delay = 0;
+
+#ifdef DEBUG
+    const uint delay_limit = 0;
+#else
     const uint delay_limit = 2*hosts.size();
+#endif
 
     local.update();
 
@@ -51,20 +57,44 @@ public:
         }
       }
 
-      for (remote_modules& host : hosts) {
-        const string name = host.hostname();
-        buffer << name << ": ";
+      while (true) {
+        stringstream remote_buffer;
+        bool backtrack = false;
+        uint host_index = 0;
 
-        for (uint i = 0; i < padding - name.size(); i++) {
-          buffer << " ";
+        for (remote_modules& host : hosts) {
+          const string name = host.hostname();
+          remote_buffer << name << ": ";
+
+          for (uint i = 0; i < padding - name.size(); i++) {
+            remote_buffer << " ";
+          }
+
+          if (delay + hosts.size() > delay_limit + host_index) {
+            pair<string, bool> pair = host.format();
+
+            if (pair.second) {
+#ifdef DEBUG
+              cerr << "\033[30mBacktracking ...\033[0m" << endl;
+#endif
+              backtrack = true;
+              break;
+            }
+
+            remote_buffer << pair.first << endl;
+          } else {
+            remote_buffer << "<waiting for initial update>" << endl;
+          }
+
+          host_index++;
         }
 
-        if (delay == delay_limit) {
-          buffer << host.format() << endl;
-        } else {
-          buffer << "<waiting for initial update>" << endl;
+        if (!backtrack) {
+          buffer << remote_buffer.str();
+          break;
         }
-      }
+
+      } // while (true)
 
       if (steps >= pause_steps + hosts.size() - 1) {
         steps = 0;
@@ -75,7 +105,12 @@ public:
       cout << buffer.str();
       flush(cout);
       offset = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
-    } // while(true)
+
+#ifdef DEBUG
+      cerr << "\033[30mUpdate " << updated << " took " << offset.count() << "\033[0m" << endl;
+#endif
+
+    } // while (true)
 
   } // void run()
 

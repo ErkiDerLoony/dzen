@@ -1,6 +1,7 @@
 #include "cpu_module.hpp"
 #include "constants.hpp"
 
+#include <utility>
 #include <fstream>
 #include <sstream>
 
@@ -19,7 +20,7 @@ cpu_module::~cpu_module() {
 }
 
 void cpu_module::update() {
-  ifstream in(filename());
+  ifstream in(filename()[0]);
 
   string line;
   vector<cpu> cpus;
@@ -83,7 +84,7 @@ void cpu_module::output(const cpu& diff, stringstream& buffer) const {
   buffer << "^fg()";
 }
 
-string cpu_module::format() const {
+pair<string, bool> cpu_module::format() const {
   stringstream buffer;
 
   if (total) {
@@ -103,7 +104,7 @@ string cpu_module::format() const {
     }
   }
 
-  return buffer.str();
+  return make_pair(buffer.str(), false);
 }
 
 cpu_module::cpu_info::cpu_info(const cpu total, const vector<cpu> cpus) : total(total), cpus(cpus) {

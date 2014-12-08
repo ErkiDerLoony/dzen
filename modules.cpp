@@ -21,15 +21,15 @@ void local_modules::update() {
 
 string local_modules::format() const {
   stringstream buffer;
-  buffer << cpu.format();
+  buffer << cpu.format().first;
   buffer << " ";
-  buffer << load.format();
+  buffer << load.format().first;
   buffer << "   ";
-  buffer << mem.format();
+  buffer << mem.format().first;
   buffer << "   ";
-  buffer << net.format();
+  buffer << net.format().first;
   buffer << "   ";
-  buffer << uptime.format();
+  buffer << uptime.format().first;
   return buffer.str();
 }
 
@@ -57,18 +57,35 @@ void remote_modules::update() {
   uptime.update();
 }
 
-string remote_modules::format() const {
+pair<string, bool> remote_modules::format() const {
+  bool backtrack = false;
   stringstream buffer;
-  buffer << cpu.format();
+
+  pair<string, bool> cpu_pair = cpu.format();
+  buffer << cpu_pair.first;
+  backtrack |= cpu_pair.second;
   buffer << " ";
-  buffer << load.format();
+
+  pair<string, bool> load_pair = load.format();
+  buffer << load_pair.first;
+  backtrack |= load_pair.second;
   buffer << "   ";
-  buffer << mem.format();
+
+  pair<string, bool> mem_pair = mem.format();
+  buffer << mem_pair.first;
+  backtrack |= mem_pair.second;
   buffer << "   ";
-  buffer << uptime.format();
+
+  pair<string, bool> uptime_pair = uptime.format();
+  buffer << uptime_pair.first;
+  backtrack |= uptime_pair.second;
   buffer << "   ";
-  buffer << who.format();
-  return buffer.str();
+
+  pair<string, bool> who_pair = who.format();
+  buffer << who_pair.first;
+  backtrack |= who_pair.second;
+
+  return make_pair(buffer.str(), backtrack);
 }
 
 const string remote_modules::hostname() const {

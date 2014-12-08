@@ -5,6 +5,7 @@
 
 #include <string>
 #include <memory>
+#include <utility>
 
 class remote_wrapper : public module {
 
@@ -13,7 +14,7 @@ public:
   remote_wrapper(remote_wrapper&&);
   virtual ~remote_wrapper();
   virtual void update();
-  virtual std::string format() const;
+  virtual std::pair<std::string, bool> format() const;
 
 private:
   bool ok;

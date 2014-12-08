@@ -13,7 +13,7 @@ load_module::load_module(const string filename) : module(filename) {}
 load_module::~load_module() {}
 
 void load_module::update() {
-  ifstream in(filename());
+  ifstream in(filename()[0]);
   string line;
   getline(in, line);
   stringstream s(line);
@@ -83,7 +83,7 @@ void output(const float value, stringstream& buffer) {
   buffer << "^fg()";
 }
 
-string load_module::format() const {
+pair<string, bool> load_module::format() const {
   stringstream buffer;
   buffer << fixed;
   output(avg1, buffer);
@@ -91,5 +91,5 @@ string load_module::format() const {
   output(avg5, buffer);
   buffer << " ";
   output(avg15, buffer);
-  return buffer.str();
+  return make_pair(buffer.str(), false);
 }

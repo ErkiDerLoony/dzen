@@ -4,6 +4,7 @@
 #include "module.hpp"
 
 #include <string>
+#include <utility>
 
 class uptime_module : public module {
 
@@ -12,7 +13,7 @@ public:
   virtual ~uptime_module();
 
   virtual void update();
-  virtual std::string format() const;
+  virtual std::pair<std::string, bool> format() const;
 
 private:
   uint days;

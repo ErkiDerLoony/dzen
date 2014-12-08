@@ -16,7 +16,7 @@ mem_module::~mem_module() {
 }
 
 void mem_module::update() {
-  ifstream in(filename());
+  ifstream in(filename()[0]);
 
   uint done = 0;
   string line;
@@ -76,7 +76,7 @@ void mem_module::output_swap(stringstream& out) const {
   out << "^fg()";
 }
 
-string mem_module::format() const {
+pair<string, bool> mem_module::format() const {
   stringstream buffer;
 
   buffer << "RAM ";
@@ -87,5 +87,5 @@ string mem_module::format() const {
     output_swap(buffer);
   }
 
-  return buffer.str();
+  return make_pair(buffer.str(), false);
 }

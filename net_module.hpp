@@ -6,6 +6,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <utility>
 
 class net_module : public module {
 
@@ -14,7 +15,7 @@ public:
   virtual ~net_module();
 
   virtual void update();
-  virtual std::string format() const;
+  virtual std::pair<std::string, bool> format() const;
 
 private:
 

@@ -13,7 +13,7 @@ public:
   cpu_module(const std::string, const bool total, const bool parts, const int width);
   virtual ~cpu_module();
   virtual void update();
-  virtual std::string format() const;
+  virtual std::pair<std::string, bool> format() const;
 
 private:
 

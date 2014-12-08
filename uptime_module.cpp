@@ -12,14 +12,14 @@ uptime_module::uptime_module(const string filename, const uint padding) : module
 uptime_module::~uptime_module() {}
 
 void uptime_module::update() {
-  ifstream in(filename());
+  ifstream in(filename()[0]);
   uint seconds;
   in >> seconds;
   days = seconds / 60 / 60 / 24;
 }
 
-string uptime_module::format() const {
+pair<string, bool> uptime_module::format() const {
   stringstream buffer;
   buffer << "up " << setw(padding) << setfill(' ') << days << " day" << (days == 1 ? "" : "s");
-  return buffer.str();
+  return make_pair(buffer.str(), false);
 }

@@ -10,6 +10,7 @@
 #include "uptime_module.hpp"
 
 #include <string>
+#include <utility>
 
 class local_modules final {
 
@@ -33,7 +34,7 @@ public:
   remote_modules(const std::string, const int);
   remote_modules(remote_modules&&);
   void update();
-  std::string format() const;
+  std::pair<std::string, bool> format() const;
   const std::string hostname() const;
 
 private:

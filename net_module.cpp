@@ -53,7 +53,7 @@ net_module::net_info operator-(const net_module::net_info& first, const net_modu
 }
 
 void net_module::update() {
-  ifstream in(filename());
+  ifstream in(filename()[0]);
   string line;
   map<string, net_module::net_info> nets;
   getline(in, line); // drop header
@@ -114,7 +114,7 @@ void output(const ulong value, stringstream& buffer) {
   }
 }
 
-string net_module::format() const {
+pair<string, bool> net_module::format() const {
   stringstream buffer;
   buffer << fixed;
   uint counter = 0;
@@ -135,5 +135,5 @@ string net_module::format() const {
     counter++;
   }
 
-  return buffer.str();
+  return make_pair(buffer.str(), false);
 }

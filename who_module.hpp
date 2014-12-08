@@ -3,6 +3,7 @@
 
 #include "module.hpp"
 
+#include <utility>
 #include <string>
 #include <set>
 #include <map>
@@ -14,11 +15,11 @@ public:
   virtual ~who_module();
 
   virtual void update();
-  virtual std::string format() const;
+  virtual std::pair<std::string, bool> format() const;
 
 private:
   std::set<std::string> names;
-  static std::map<std::string, uint> lengths;
+  static std::map<std::vector<std::string>, uint> lengths;
 
   const uint max_length() const;
 

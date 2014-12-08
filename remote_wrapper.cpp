@@ -24,22 +24,26 @@ remote_wrapper::~remote_wrapper() {
 }
 
 void remote_wrapper::update() {
-  const int result = system(string("ssh -o ConnectTimeout=5 " + hostname + " '" + remote_command + "' > " + inner->filename() + " 2>/dev/null").c_str());
 
-  if (result == 0) {
-    ok = true;
-    inner->update();
-    remove(filename().c_str());
-  } else {
-    ok = false;
+  for (string filename : inner->filename()) {
+    const int result = system(string("ssh -o ConnectTimeout=5 " + hostname + " '" + remote_command + "' > " + filename + " 2>/dev/null").c_str());
+
+    if (result == 0) {
+      ok = true;
+      inner->update();
+      remove(filename.c_str());
+    } else {
+      ok = false;
+      break;
+    }
   }
 }
 
-string remote_wrapper::format() const {
+pair<string, bool> remote_wrapper::format() const {
 
   if (ok) {
     return inner->format();
   } else {
-    return "<unreachable>";
+    return make_pair("<unreachable>", false);
   }
 }

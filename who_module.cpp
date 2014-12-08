@@ -5,14 +5,14 @@
 
 using namespace std;
 
-map<string, uint> who_module::lengths;
+map<vector<string>, uint> who_module::lengths;
 
 who_module::who_module(const string filename) : module(filename) {}
 
 who_module::~who_module() {}
 
 void who_module::update() {
-  ifstream in(filename());
+  ifstream in(filename()[0]);
   string line;
   names.clear();
 
@@ -24,9 +24,10 @@ void who_module::update() {
   }
 }
 
-string who_module::format() const {
+pair<string, bool> who_module::format() const {
   uint count = 0;
   stringstream s;
+  bool backtrack = false;
 
   for (const string name : names) {
     s << name;
@@ -39,6 +40,11 @@ string who_module::format() const {
   }
 
   const uint pre_len = s.str().length();
+
+  if (pre_len != lengths[filename()]) {
+    backtrack = true;
+  }
+
   lengths[filename()] = pre_len;
   const uint max_len = max_length();
 
@@ -49,14 +55,17 @@ string who_module::format() const {
     }
   }
 
-  return s.str();
+  return make_pair(s.str(), backtrack);
 }
 
 const uint who_module::max_length() const {
   uint result = 0;
 
-  for (pair<string, uint> entry : lengths) {
-    result += entry.second;
+  for (const pair<vector<string>, uint>& entry : lengths) {
+
+    if (entry.second > result) {
+      result = entry.second;
+    }
   }
 
   return result;

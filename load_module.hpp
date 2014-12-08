@@ -3,6 +3,7 @@
 
 #include "module.hpp"
 
+#include <utility>
 #include <string>
 
 class load_module : public module {
@@ -12,7 +13,7 @@ public:
   virtual ~load_module();
 
   virtual void update();
-  virtual std::string format() const;
+  virtual std::pair<std::string, bool> format() const;
 
 private:
   float avg1, avg5, avg15;

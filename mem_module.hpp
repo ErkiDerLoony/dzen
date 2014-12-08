@@ -3,6 +3,7 @@
 
 #include "module.hpp"
 
+#include <utility>
 #include <string>
 #include <sstream>
 
@@ -12,7 +13,7 @@ public:
   mem_module(const std::string, const int);
   virtual ~mem_module();
   virtual void update();
-  virtual std::string format() const;
+  virtual std::pair<std::string, bool> format() const;
 
 private:
 
