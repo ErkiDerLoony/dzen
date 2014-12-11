@@ -74,9 +74,9 @@ void output(const float value, const uint nproc, stringstream& buffer) {
 
   if (value < limit0) {
     buffer << interpolate(constants.green, constants.yellow, value / limit0);
-  } else if (value < 12) {
+  } else if (value < limit1) {
     buffer << interpolate(constants.yellow, constants.orange, (value - limit0) / (limit1 - limit0));
-  } else if (value < 40) {
+  } else if (value < limit2) {
     buffer << interpolate(constants.orange, constants.bright_red, (value - limit1) / (limit2 - limit1));
   } else {
     buffer << constants.bright_red;
