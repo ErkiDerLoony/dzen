@@ -68,6 +68,8 @@ void net_module::update() {
     }
   }
 
+  diffs.clear();
+
   for (auto net : nets) {
     auto item = previous.find(net.first);
 
