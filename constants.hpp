@@ -9,6 +9,7 @@ struct {
   const std::string blue = "#0078bf";
   const std::string green = "#00bf00";
   const std::string yellow = "#ffff00";
+  const std::string bright_orange = "#ffc800";
   const std::string orange = "#bf9900";
   const std::string bright_red = "#ff0000";
   const std::string red = "#b62300";
