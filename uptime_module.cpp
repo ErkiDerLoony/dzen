@@ -20,6 +20,6 @@ void uptime_module::update() {
 
 pair<string, bool> uptime_module::format() const {
   stringstream buffer;
-  buffer << "up " << setw(padding) << setfill(' ') << days << " day" << (days == 1 ? "" : "s");
+  buffer << "up " << setw(padding) << setfill(' ') << days << " day" << (days == 1 ? " " : "s");
   return make_pair(buffer.str(), false);
 }
