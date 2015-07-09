@@ -37,7 +37,7 @@ remote_modules::remote_modules(const string hostname, const int width)
   : host(hostname),
     cpu(remote_wrapper(vector<string>{"cat /proc/stat"}, hostname, unique_ptr<module>(new cpu_module("/tmp/" + hostname + ".stat", true, false, 2*width)))),
     mem(remote_wrapper(vector<string>{"cat /proc/meminfo"}, hostname, unique_ptr<module>(new mem_module("/tmp/" + hostname + ".meminfo", 2*width)))),
-    who(remote_wrapper(vector<string>{"who"}, hostname, unique_ptr<module>(new who_module("/tmp/" + hostname + ".who")))),
+    who(remote_wrapper(vector<string>{"who", "ps --no-header -e -o %mem,%cpu,euser"}, hostname, unique_ptr<module>(new who_module("/tmp/" + hostname + ".who", "/tmp/" + hostname + ".who2")))),
     load(remote_wrapper(vector<string>{"cat /proc/loadavg", "cat /proc/cpuinfo"}, hostname, unique_ptr<module>(new load_module("/tmp/" + hostname + ".load", "/tmp/" + hostname + ".cpuinfo")))),
     uptime(remote_wrapper(vector<string>{"cat /proc/uptime"}, hostname, unique_ptr<module>(new uptime_module("/tmp/" + hostname + ".uptime", 3)))) {
 }

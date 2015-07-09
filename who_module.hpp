@@ -11,7 +11,7 @@
 class who_module : public module {
 
 public:
-  who_module(const std::string);
+  who_module(const std::string, const std::string);
   virtual ~who_module();
 
   virtual void update();

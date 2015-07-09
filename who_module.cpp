@@ -1,5 +1,6 @@
 #include "who_module.hpp"
 
+#include <iostream>
 #include <fstream>
 #include <sstream>
 
@@ -7,9 +8,26 @@ using namespace std;
 
 map<vector<string>, uint> who_module::lengths;
 
-who_module::who_module(const string filename) : module(filename) {}
+who_module::who_module(const string filename, const string filename2) : module({filename, filename2}) {}
 
 who_module::~who_module() {}
+
+ostream& operator<<(ostream& out, const set<string>& set) {
+  auto it = set.begin();
+  out << "{";
+
+  for (uint i = 0; i < set.size(); i++) {
+    out << *it;
+    it++;
+
+    if (i < set.size() - 1) {
+      out << ", ";
+    }
+  }
+
+  out << "}";
+  return out;
+}
 
 void who_module::update() {
   ifstream in(filename()[0]);
@@ -21,6 +39,22 @@ void who_module::update() {
     string name;
     s >> name;
     names.insert(name);
+  }
+
+  ifstream in2(filename()[1]);
+
+  while (getline(in2, line)) {
+    stringstream s(line);
+    double mem;
+    s >> mem;
+    double cpu;
+    s >> cpu;
+    string name;
+    s >> name;
+
+    if (cpu > 10.0 || mem > 1.0) {
+      names.insert(name);
+    }
   }
 }
 

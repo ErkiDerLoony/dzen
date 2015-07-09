@@ -31,12 +31,18 @@ void remote_wrapper::update() {
 
     if (result == 0) {
       ok = true;
-      inner->update();
-      remove(filename.c_str());
     } else {
       ok = false;
       break;
     }
+  }
+
+  if (ok) {
+    inner->update();
+  }
+
+  for (string filename : inner->filename()) {
+    remove(filename.c_str());
   }
 }
 
