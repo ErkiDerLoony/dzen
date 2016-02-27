@@ -71,9 +71,14 @@ void mem_module::output(stringstream& out) const {
 }
 
 void mem_module::output_swap(stringstream& out) const {
-  print(out, state.swap_total - state.swap_free, constants.red);
-  print(out, state.swap_free, constants.dark_grey);
-  out << "^fg()";
+
+  if (state.swap_total == 0) {
+    out << "^fg(" << constants.dark_grey << ")" << "^ro(" << state.swap_free << "x" << constants.height << ")" << "^fg()";
+  } else {
+    print(out, state.swap_total - state.swap_free, constants.red);
+    print(out, state.swap_free, constants.dark_grey);
+    out << "^fg()";
+  }
 }
 
 pair<string, bool> mem_module::format() const {
@@ -82,10 +87,8 @@ pair<string, bool> mem_module::format() const {
   buffer << "RAM ";
   output(buffer);
 
-  if (state.swap_total != 0) {
-    buffer << "   Swap ";
-    output_swap(buffer);
-  }
+  buffer << "   Swap ";
+  output_swap(buffer);
 
   return make_pair(buffer.str(), false);
 }

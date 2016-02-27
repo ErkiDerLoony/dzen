@@ -26,3 +26,7 @@ debug: all
 clean:
 	@$(RM) -v $(OBJ) $(BIN)
 	@$(RM) -v $(FLAGS_FILE)
+
+.PHONY: mrproper
+mrproper: clean
+	@$(RM) -v $(NAME)
