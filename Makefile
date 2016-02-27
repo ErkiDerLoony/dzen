@@ -1,7 +1,7 @@
 SRC=$(wildcard *.cpp)
 OBJ=$(SRC:.cpp=.o)
 NAME=dzen++
-FLAGS_FILE=compiler_flags
+FLAGS_FILE=.compiler_flags
 
 CXXFLAGS+=-pedantic -Wall -O2 -std=c++1y
 
