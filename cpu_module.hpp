@@ -35,16 +35,16 @@ public:
 private:
 
   struct cpu {
-    ulong user;
-    ulong nice;
-    ulong system;
-    ulong idle;
-    ulong iowait;
-    ulong irq;
-    ulong softirq;
-    ulong steal;
-    ulong guest;
-    ulong guest_nice;
+    unsigned long user;
+    unsigned long nice;
+    unsigned long system;
+    unsigned long idle;
+    unsigned long iowait;
+    unsigned long irq;
+    unsigned long softirq;
+    unsigned long steal;
+    unsigned long guest;
+    unsigned long guest_nice;
 
     cpu();
   };

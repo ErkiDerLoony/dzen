@@ -37,14 +37,14 @@ public:
 private:
 
   struct net {
-    ulong bytes;
-    ulong packets;
-    ulong errs;
-    ulong drop;
-    ulong fifo;
-    ulong frame;
-    ulong compressed;
-    ulong multicast;
+    unsigned long bytes;
+    unsigned long packets;
+    unsigned long errs;
+    unsigned long drop;
+    unsigned long fifo;
+    unsigned long frame;
+    unsigned long compressed;
+    unsigned long multicast;
 
     net();
   };

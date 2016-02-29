@@ -98,13 +98,13 @@ void net_module::update() {
   previous = nets;
 }
 
-void output(const ulong value, stringstream& buffer) {
+void output(const unsigned long value, stringstream& buffer) {
   const double mod = 1024.0;
   const double kb = value / mod;
   const double mb = kb / mod;
 
   if (mb < 1) {
-    const ulong digits = static_cast<ulong>(log(kb)/log(10)) + 1;
+    const unsigned long digits = static_cast<unsigned long>(log(kb)/log(10)) + 1;
 
     switch (digits) {
     case 3:
@@ -118,7 +118,7 @@ void output(const ulong value, stringstream& buffer) {
     }
 
   } else {
-    const ulong digits = static_cast<ulong>(log(mb)/log(10)) + 1;
+    const unsigned long digits = static_cast<unsigned long>(log(mb)/log(10)) + 1;
 
     switch (digits) {
     case 3:

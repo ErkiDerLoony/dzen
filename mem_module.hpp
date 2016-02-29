@@ -35,12 +35,12 @@ public:
 private:
 
   struct mem_info {
-    ulong total;
-    ulong free;
-    ulong buffers;
-    ulong cached;
-    ulong swap_total;
-    ulong swap_free;
+    unsigned long total;
+    unsigned long free;
+    unsigned long buffers;
+    unsigned long cached;
+    unsigned long swap_total;
+    unsigned long swap_free;
   };
 
   mem_info state;
