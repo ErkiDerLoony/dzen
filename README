@@ -1,0 +1,14 @@
+This program gathers status information about local and remote computers and outputs it in a format suitable for consumption by the dzen2 program [1].
+
+To run the program first do
+
+  $ make
+
+and then call it e.g. with
+
+  $ ./dzen++ -r server1,server2 | dzen2
+
+Make sure you can login to server1 and server2 via ssh without a password. Otherwise things might get annoying.
+
+
+[1] https://github.com/robm/dzen
