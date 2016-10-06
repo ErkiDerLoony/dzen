@@ -26,7 +26,10 @@
 
 using namespace std;
 
-net_module::net_module(string filename) : module(filename) {}
+net_module::net_module(string filename, const bool aggregate)
+  : module(filename),
+    aggregate(aggregate) {
+}
 
 net_module::~net_module() {}
 
@@ -80,7 +83,7 @@ void net_module::update() {
     in >> n;
     n.name = n.name.substr(0, n.name.length() - 1);
 
-    if (n.name != "lo" && n.name != "") {
+    if (n.name != "") {
       nets[n.name] = n;
     }
   }
@@ -138,20 +141,40 @@ pair<string, bool> net_module::format() const {
   buffer << fixed;
   uint counter = 0;
 
-  for (pair<string, net_module::net_info> entry : diffs) {
-    buffer << entry.first << " ";
-    buffer << "^fg(" << constants.green << ")";
-    output(entry.second.rx.bytes, buffer);
-    buffer << "^fg() ";
-    buffer << "^fg(" << constants.red << ")";
-    output(entry.second.tx.bytes, buffer);
-    buffer << "^fg()";
+  if (aggregate) {
+    unsigned long total_rx = 0;
+    unsigned long total_tx = 0;
 
-    if (counter < diffs.size() - 1) {
-      buffer << "   ";
+    for (pair<string, net_module::net_info> entry :diffs) {
+      total_rx += entry.second.rx.bytes;
+      total_tx += entry.second.tx.bytes;
     }
 
-    counter++;
+    buffer << "Net ";
+    buffer << "^fg(" << constants.green << ")";
+    output(total_rx, buffer);
+    buffer << "^fg() ";
+    buffer << "^fg(" << constants.red << ")";
+    output(total_tx, buffer);
+    buffer << "^fg()";
+
+  } else {
+
+    for (pair<string, net_module::net_info> entry : diffs) {
+      buffer << entry.first << " ";
+      buffer << "^fg(" << constants.green << ")";
+      output(entry.second.rx.bytes, buffer);
+      buffer << "^fg() ";
+      buffer << "^fg(" << constants.red << ")";
+      output(entry.second.tx.bytes, buffer);
+      buffer << "^fg()";
+
+      if (counter < diffs.size() - 1) {
+        buffer << "   ";
+      }
+
+      counter++;
+    }
   }
 
   return make_pair(buffer.str(), false);

@@ -21,11 +21,12 @@
 
 using namespace std;
 
-local_modules::local_modules(const int width) : cpu("/proc/stat", false, true, static_cast<int>(0.75*width)),
-                                                mem("/proc/meminfo", width),
-                                                load("/proc/loadavg", "/proc/cpuinfo"),
-                                                net("/proc/net/dev"),
-                                                uptime("/proc/uptime", 1) {
+local_modules::local_modules(const int width, const bool aggregate)
+  : cpu("/proc/stat", false, true, static_cast<int>(0.75*width)),
+    mem("/proc/meminfo", width),
+    load("/proc/loadavg", "/proc/cpuinfo"),
+    net("/proc/net/dev", aggregate),
+    uptime("/proc/uptime", 1) {
 }
 
 void local_modules::update() {

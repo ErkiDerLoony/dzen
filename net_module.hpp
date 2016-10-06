@@ -28,7 +28,7 @@
 class net_module : public module {
 
 public:
-  net_module(std::string);
+  net_module(std::string, const bool);
   virtual ~net_module();
 
   virtual void update();
@@ -57,6 +57,7 @@ private:
 
   std::map<std::string, net_info> previous;
   std::map<std::string, net_info> diffs;
+  const bool aggregate;
 
   friend std::istream& operator>>(std::istream&, net_module::net_info&);
   friend net_info operator-(const net_info&, const net_info&);

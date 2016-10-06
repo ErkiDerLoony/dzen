@@ -32,7 +32,7 @@
 class local_modules final {
 
 public:
-  local_modules(const int);
+  local_modules(const int, const bool);
   void update();
   std::string format() const;
 

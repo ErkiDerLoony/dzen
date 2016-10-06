@@ -218,9 +218,17 @@ int main(int argc, char** argv) {
     }
   }
 
+  key = vector<string>{"-a", "--aggregate"};
+  bool net_aggregate = false;
+
+  if (args.has(key)) {
+    args.pop(key);
+    net_aggregate = true;
+  }
+
   args.warn();
 
-  local_modules modules(width);
+  local_modules modules(width, net_aggregate);
 
   dzen(modules, move(remotes), pause_steps).run();
 
