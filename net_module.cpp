@@ -73,15 +73,27 @@ net_module::net_info operator-(const net_module::net_info& first, const net_modu
 }
 
 void net_module::update() {
+
+#ifdef DEBUG
+  cerr << "\033[30mLoading " << filename()[0] << " ...\033[0m" << endl;
+#endif
+
   ifstream in(filename()[0]);
   string line;
   map<string, net_module::net_info> nets;
   getline(in, line); // drop header
+  getline(in, line);
 
   while (getline(in, line)) {
     net_module::net_info n;
-    in >> n;
+    stringstream ss;
+    ss << line;
+    ss >> n;
     n.name = n.name.substr(0, n.name.length() - 1);
+
+#ifdef DEBUG
+    cerr << "\033[30mFound network interface " << n.name << " with bytes " << n.rx.bytes << ".\033[0m" << endl;
+#endif
 
     if (n.name != "") {
       nets[n.name] = n;
@@ -145,10 +157,17 @@ pair<string, bool> net_module::format() const {
     unsigned long total_rx = 0;
     unsigned long total_tx = 0;
 
-    for (pair<string, net_module::net_info> entry :diffs) {
+    for (pair<string, net_module::net_info> entry : diffs) {
+#ifdef DEBUG
+    cerr << "\033[30m" << entry.first << ": rx = " << entry.second.rx.bytes << ", tx = " << entry.second.tx.bytes << "\033[0m" << endl;
+#endif
       total_rx += entry.second.rx.bytes;
       total_tx += entry.second.tx.bytes;
     }
+
+#ifdef DEBUG
+    cerr << "\033[30mtotal rx = " << total_rx << ", total tx = " << total_tx << endl;
+#endif
 
     buffer << "Net ";
     buffer << "^fg(" << constants.green << ")";
