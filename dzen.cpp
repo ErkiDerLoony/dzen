@@ -124,7 +124,7 @@ public:
       offset = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
 
 #ifdef DEBUG
-      cerr << "\033[30mUpdate " << updated << " took " << offset.count() << "\033[0m" << endl;
+      cerr << "\033[30mUpdate " << updated << " took " << offset.count() << " ms.\033[0m" << endl;
 #endif
 
     } // while (true)

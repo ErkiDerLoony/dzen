@@ -24,6 +24,7 @@
 #include "load_module.hpp"
 #include "remote_wrapper.hpp"
 #include "net_module.hpp"
+#include "battery_module.hpp"
 #include "uptime_module.hpp"
 
 #include <string>
@@ -41,6 +42,7 @@ private:
   mem_module mem;
   load_module load;
   net_module net;
+  battery_module battery;
   uptime_module uptime;
 
 }; // class local_modules

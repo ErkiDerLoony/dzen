@@ -26,6 +26,7 @@ local_modules::local_modules(const int width, const bool aggregate)
     mem("/proc/meminfo", width),
     load("/proc/loadavg", "/proc/cpuinfo"),
     net("/proc/net/dev", aggregate),
+    battery("/sys/class/power_supply/BAT0/capacity", width),
     uptime("/proc/uptime", 1) {
 }
 
@@ -34,6 +35,7 @@ void local_modules::update() {
   mem.update();
   load.update();
   net.update();
+  battery.update();
   uptime.update();
 }
 
@@ -44,6 +46,8 @@ string local_modules::format() const {
   buffer << load.format().first;
   buffer << "   ";
   buffer << mem.format().first;
+  buffer << "   ";
+  buffer << battery.format().first;
   buffer << "   ";
   buffer << net.format().first;
   buffer << "   ";

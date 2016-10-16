@@ -53,22 +53,22 @@ istream& operator>>(istream& in, net_module::net_info& n) {
 net_module::net_info operator-(const net_module::net_info& first, const net_module::net_info& second) {
   net_module::net_info result;
   result.name = first.name;
-  result.rx.bytes = first.rx.bytes - second.rx.bytes;
-  result.rx.packets = first.rx.packets - second.rx.packets;
-  result.rx.errs = first.rx.errs - second.rx.errs;
-  result.rx.drop = first.rx.drop - second.rx.drop;
-  result.rx.fifo = first.rx.fifo - second.rx.fifo;
-  result.rx.frame = first.rx.frame - second.rx.frame;
-  result.rx.compressed = first.rx.compressed - second.rx.compressed;
-  result.rx.multicast = first.rx.multicast - second.rx.multicast;
-  result.tx.bytes = first.tx.bytes - second.tx.bytes;
-  result.tx.packets = first.tx.packets - second.tx.packets;
-  result.tx.errs = first.tx.errs - second.tx.errs;
-  result.tx.drop = first.tx.drop - second.tx.drop;
-  result.tx.fifo = first.tx.fifo - second.tx.fifo;
-  result.tx.frame = first.tx.frame - second.tx.frame;
-  result.tx.compressed = first.tx.compressed - second.tx.compressed;
-  result.tx.multicast = first.tx.multicast - second.tx.multicast;
+  result.rx.bytes = abs(first.rx.bytes - second.rx.bytes);
+  result.rx.packets = abs(first.rx.packets - second.rx.packets);
+  result.rx.errs = abs(first.rx.errs - second.rx.errs);
+  result.rx.drop = abs(first.rx.drop - second.rx.drop);
+  result.rx.fifo = abs(first.rx.fifo - second.rx.fifo);
+  result.rx.frame = abs(first.rx.frame - second.rx.frame);
+  result.rx.compressed = abs(first.rx.compressed - second.rx.compressed);
+  result.rx.multicast = abs(first.rx.multicast - second.rx.multicast);
+  result.tx.bytes = abs(first.tx.bytes - second.tx.bytes);
+  result.tx.packets = abs(first.tx.packets - second.tx.packets);
+  result.tx.errs = abs(first.tx.errs - second.tx.errs);
+  result.tx.drop = abs(first.tx.drop - second.tx.drop);
+  result.tx.fifo = abs(first.tx.fifo - second.tx.fifo);
+  result.tx.frame = abs(first.tx.frame - second.tx.frame);
+  result.tx.compressed = abs(first.tx.compressed - second.tx.compressed);
+  result.tx.multicast = abs(first.tx.multicast - second.tx.multicast);
   return result;
 }
 
@@ -106,20 +106,24 @@ void net_module::update() {
     auto item = previous.find(net.first);
 
     if (item != previous.end()) {
-      diffs[net.first] = net.second - (*item).second;
+      diffs[net.first] = net.second - item->second;
+#ifdef DEBUG
+      cerr << "\033[30mdiff " << net.first << " = " << net.second.rx.bytes << " - " << item->second.rx.bytes << " = " << diffs[net.first].rx.bytes << "\033[0m" << endl;
+#endif
+
     }
   }
 
   previous = nets;
 }
 
-void output(const unsigned long value, stringstream& buffer) {
+void output(const unsigned long long value, stringstream& buffer) {
   const double mod = 1024.0;
-  const double kb = value / mod;
-  const double mb = kb / mod;
+  const long double kb = value / mod;
+  const long double mb = kb / mod;
 
   if (mb < 1) {
-    const unsigned long digits = static_cast<unsigned long>(log(kb)/log(10)) + 1;
+    const unsigned long long digits = static_cast<unsigned long long>(log(kb)/log(10)) + 1;
 
     switch (digits) {
     case 3:
@@ -133,7 +137,7 @@ void output(const unsigned long value, stringstream& buffer) {
     }
 
   } else {
-    const unsigned long digits = static_cast<unsigned long>(log(mb)/log(10)) + 1;
+    const unsigned long long digits = static_cast<unsigned long long>(log(mb)/log(10)) + 1;
 
     switch (digits) {
     case 3:
@@ -158,6 +162,9 @@ pair<string, bool> net_module::format() const {
     unsigned long long total_tx = 0;
 
     for (pair<string, net_module::net_info> entry : diffs) {
+#ifdef DEBUG
+      cerr << "\033[30m" << entry.first << ": rx = " << entry.second.rx.bytes << ", tx = " << entry.second.tx.bytes << "\033[0m" << endl;
+#endif
       total_rx += entry.second.rx.bytes;
       total_tx += entry.second.tx.bytes;
     }
