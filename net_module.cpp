@@ -154,13 +154,10 @@ pair<string, bool> net_module::format() const {
   uint counter = 0;
 
   if (aggregate) {
-    unsigned long total_rx = 0;
-    unsigned long total_tx = 0;
+    unsigned long long total_rx = 0;
+    unsigned long long total_tx = 0;
 
     for (pair<string, net_module::net_info> entry : diffs) {
-#ifdef DEBUG
-    cerr << "\033[30m" << entry.first << ": rx = " << entry.second.rx.bytes << ", tx = " << entry.second.tx.bytes << "\033[0m" << endl;
-#endif
       total_rx += entry.second.rx.bytes;
       total_tx += entry.second.tx.bytes;
     }

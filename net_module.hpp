@@ -37,14 +37,14 @@ public:
 private:
 
   struct net {
-    unsigned long bytes;
-    unsigned long packets;
-    unsigned long errs;
-    unsigned long drop;
-    unsigned long fifo;
-    unsigned long frame;
-    unsigned long compressed;
-    unsigned long multicast;
+    unsigned long long bytes;
+    unsigned long long packets;
+    unsigned long long errs;
+    unsigned long long drop;
+    unsigned long long fifo;
+    unsigned long long frame;
+    unsigned long long compressed;
+    unsigned long long multicast;
 
     net();
   };
