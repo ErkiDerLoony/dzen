@@ -89,6 +89,10 @@ void output(const float value, const uint nproc, stringstream& buffer) {
   const float limit1 = nproc;
   const float limit2 = 1.5*nproc;
 
+  if (limit0 == 0 || limit0 == limit1 || limit2 == limit1) {
+    throw runtime_error("Too few CPUs!");
+  }
+
   if (value < limit0) {
     buffer << interpolate(constants.green, constants.yellow, value / limit0);
   } else if (value < limit1) {

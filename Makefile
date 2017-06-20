@@ -4,7 +4,7 @@ NAME=dzen++
 FLAGS_FILE=.compiler_flags
 DEP_FILE=.depend
 
-CXXFLAGS+=-pedantic -Wall -O2 -std=c++1y
+CXXFLAGS+=-pedantic -Wall -O3 -std=c++14
 
 all: depend $(NAME)
 

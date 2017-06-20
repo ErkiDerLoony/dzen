@@ -72,17 +72,32 @@ long cpu_module::sum(const cpu_module::cpu& cpu) const {
 cpu_module::cpu cpu_module::normalize(const cpu_module::cpu& c) const {
   cpu_module::cpu result;
   const long s = sum(c);
-  result.user = static_cast<long>(0.5 + width * c.user / s);
-  result.nice = static_cast<long>(0.5 + width * c.nice / s);
-  result.system = static_cast<long>(0.5 + width * c.system / s);
-  result.iowait = static_cast<long>(0.5 + width * c.iowait / s);
-  result.irq = static_cast<long>(0.5 + width * c.irq / s);
-  result.softirq = static_cast<long>(0.5 + width * c.softirq / s);
-  result.steal = static_cast<long>(0.5 + width * c.steal / s);
-  result.guest = static_cast<long>(0.5 + width * c.guest / s);
-  result.guest_nice = static_cast<long>(0.5 + width * c.guest_nice / s);
-  result.idle = 0;
-  result.idle = width - sum(result);
+
+  if (s == 0) {
+    result.user = width;
+    result.nice = 0;
+    result.system = 0;
+    result.iowait = 0;
+    result.irq = 0;
+    result.softirq = 0;
+    result.steal = 0;
+    result.guest = 0;
+    result.guest_nice = 0;
+    result.idle = 0;
+  } else {
+    result.user = static_cast<long>(0.5 + width * c.user / s);
+    result.nice = static_cast<long>(0.5 + width * c.nice / s);
+    result.system = static_cast<long>(0.5 + width * c.system / s);
+    result.iowait = static_cast<long>(0.5 + width * c.iowait / s);
+    result.irq = static_cast<long>(0.5 + width * c.irq / s);
+    result.softirq = static_cast<long>(0.5 + width * c.softirq / s);
+    result.steal = static_cast<long>(0.5 + width * c.steal / s);
+    result.guest = static_cast<long>(0.5 + width * c.guest / s);
+    result.guest_nice = static_cast<long>(0.5 + width * c.guest_nice / s);
+    result.idle = 0;
+    result.idle = width - sum(result);
+  }
+
   return result;
 }
 

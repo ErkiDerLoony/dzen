@@ -66,6 +66,10 @@ void mem_module::update() {
     }
   }
 
+  if (state.total == 0) {
+    throw runtime_error("No memory!");
+  }
+
   state.free = static_cast<long>(0.5 + width * state.free/state.total);
   state.buffers = static_cast<long>(0.5 + width * state.buffers/state.total);
   state.cached = static_cast<long>(0.5 + width * state.cached/state.total);

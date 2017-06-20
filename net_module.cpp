@@ -1,5 +1,5 @@
 /*
- * © Copyright 2015–2016 by Edgar Kalkowski <eMail@edgar-kalkowski.de>
+ * © Copyright 2015–2017 by Edgar Kalkowski <eMail@edgar-kalkowski.de>
  *
  * This file is part of the dzen2 config program dzen++.
  *
@@ -53,22 +53,22 @@ istream& operator>>(istream& in, net_module::net_info& n) {
 net_module::net_info operator-(const net_module::net_info& first, const net_module::net_info& second) {
   net_module::net_info result;
   result.name = first.name;
-  result.rx.bytes = abs(first.rx.bytes - second.rx.bytes);
-  result.rx.packets = abs(first.rx.packets - second.rx.packets);
-  result.rx.errs = abs(first.rx.errs - second.rx.errs);
-  result.rx.drop = abs(first.rx.drop - second.rx.drop);
-  result.rx.fifo = abs(first.rx.fifo - second.rx.fifo);
-  result.rx.frame = abs(first.rx.frame - second.rx.frame);
-  result.rx.compressed = abs(first.rx.compressed - second.rx.compressed);
-  result.rx.multicast = abs(first.rx.multicast - second.rx.multicast);
-  result.tx.bytes = abs(first.tx.bytes - second.tx.bytes);
-  result.tx.packets = abs(first.tx.packets - second.tx.packets);
-  result.tx.errs = abs(first.tx.errs - second.tx.errs);
-  result.tx.drop = abs(first.tx.drop - second.tx.drop);
-  result.tx.fifo = abs(first.tx.fifo - second.tx.fifo);
-  result.tx.frame = abs(first.tx.frame - second.tx.frame);
-  result.tx.compressed = abs(first.tx.compressed - second.tx.compressed);
-  result.tx.multicast = abs(first.tx.multicast - second.tx.multicast);
+  result.rx.bytes = first.rx.bytes - second.rx.bytes;
+  result.rx.packets = first.rx.packets - second.rx.packets;
+  result.rx.errs = first.rx.errs - second.rx.errs;
+  result.rx.drop = first.rx.drop - second.rx.drop;
+  result.rx.fifo = first.rx.fifo - second.rx.fifo;
+  result.rx.frame = first.rx.frame - second.rx.frame;
+  result.rx.compressed = first.rx.compressed - second.rx.compressed;
+  result.rx.multicast = first.rx.multicast - second.rx.multicast;
+  result.tx.bytes = first.tx.bytes - second.tx.bytes;
+  result.tx.packets = first.tx.packets - second.tx.packets;
+  result.tx.errs = first.tx.errs - second.tx.errs;
+  result.tx.drop = first.tx.drop - second.tx.drop;
+  result.tx.fifo = first.tx.fifo - second.tx.fifo;
+  result.tx.frame = first.tx.frame - second.tx.frame;
+  result.tx.compressed = first.tx.compressed - second.tx.compressed;
+  result.tx.multicast = first.tx.multicast - second.tx.multicast;
   return result;
 }
 
@@ -95,7 +95,7 @@ void net_module::update() {
     cerr << "\033[30mFound network interface " << n.name << " with bytes " << n.rx.bytes << ".\033[0m" << endl;
 #endif
 
-    if (n.name != "") {
+    if (n.name != "" && n.name != "lo") {
       nets[n.name] = n;
     }
   }
