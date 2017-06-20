@@ -1,5 +1,5 @@
 /*
- * © Copyright 2015–2016 by Edgar Kalkowski <eMail@edgar-kalkowski.de>
+ * © Copyright 2015–2017 by Edgar Kalkowski <eMail@edgar-kalkowski.de>
  *
  * This file is part of the dzen2 config program dzen++.
  *
@@ -24,6 +24,7 @@
 #include <set>
 #include <map>
 #include <utility>
+#include <chrono>
 
 class net_module : public module {
 
@@ -57,6 +58,7 @@ private:
 
   std::map<std::string, net_info> previous;
   std::map<std::string, net_info> diffs;
+  std::map<std::string, std::chrono::steady_clock::time_point> active;
   const bool aggregate;
 
   friend std::istream& operator>>(std::istream&, net_module::net_info&);

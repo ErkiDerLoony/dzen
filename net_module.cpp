@@ -95,9 +95,7 @@ void net_module::update() {
     cerr << "\033[30mFound network interface " << n.name << " with bytes " << n.rx.bytes << ".\033[0m" << endl;
 #endif
 
-    if (n.name != "" && n.name != "lo") {
-      nets[n.name] = n;
-    }
+    nets[n.name] = n;
   }
 
   diffs.clear();
@@ -110,7 +108,10 @@ void net_module::update() {
 #ifdef DEBUG
       cerr << "\033[30mdiff " << net.first << " = " << net.second.rx.bytes << " - " << item->second.rx.bytes << " = " << diffs[net.first].rx.bytes << "\033[0m" << endl;
 #endif
+    }
 
+    if (diffs[net.first].rx.bytes > 0 || diffs[net.first].tx.bytes > 0) {
+      active[net.first] = chrono::steady_clock::now();
     }
   }
 
@@ -182,8 +183,27 @@ pair<string, bool> net_module::format() const {
     buffer << "^fg()";
 
   } else {
+    chrono::steady_clock::time_point now = chrono::steady_clock::now();
 
-    for (pair<string, net_module::net_info> entry : diffs) {
+    for (const pair<string, net_module::net_info> entry : diffs) {
+      auto result = active.find(entry.first);
+      const bool ever = result != active.end();
+      chrono::steady_clock::time_point last = active.find(entry.first)->second;
+
+#ifdef DEBUG
+      auto offset = chrono::duration_cast<chrono::seconds>(now - last);
+
+      if (ever) {
+        cerr << "\033[30mNetwork " << entry.first << " was active " << offset.count() << " seconds ago.\033[0m" << endl;
+      } else {
+        cerr << "\033[30mNetwork " << entry.first << " was never active.\033[0m" << endl;
+      }
+#endif
+
+      if (!ever || now - last > chrono::seconds(300)) {
+        continue;
+      }
+
       buffer << entry.first << " ";
       buffer << "^fg(" << constants.green << ")";
       output(entry.second.rx.bytes, buffer);
