@@ -49,8 +49,13 @@ string local_modules::format() const {
   buffer << "   ";
   buffer << battery.format().first;
   buffer << "   ";
-  buffer << net.format().first;
-  buffer << "   ";
+  auto nf = net.format();
+
+  if (nf.first.length() > 0) {
+    buffer << nf.first;
+    buffer << "   ";
+  }
+
   buffer << uptime.format().first;
   return buffer.str();
 }

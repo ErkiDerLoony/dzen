@@ -204,18 +204,18 @@ pair<string, bool> net_module::format() const {
         continue;
       }
 
+      if (counter > 0) {
+        buffer << "   ";
+      }
+
       buffer << entry.first << " ";
+
       buffer << "^fg(" << constants.green << ")";
       output(entry.second.rx.bytes, buffer);
       buffer << "^fg() ";
       buffer << "^fg(" << constants.red << ")";
       output(entry.second.tx.bytes, buffer);
       buffer << "^fg()";
-
-      if (counter < diffs.size() - 1) {
-        buffer << "   ";
-      }
-
       counter++;
     }
   }
