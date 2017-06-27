@@ -30,6 +30,14 @@ $(NAME): $(OBJ)
 debug: CXXFLAGS+=-g -DDEBUG
 debug: all
 
+.PHONY: test
+test: all
+	make -C test
+
+.PHONY: debugtest
+debugtest: debug
+	make -C test debug
+
 .PHONY: clean
 clean:
 	@$(RM) -v $(OBJ) $(BIN)

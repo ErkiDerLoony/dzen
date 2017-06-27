@@ -1,4 +1,4 @@
 /dzen++
-/*.o
-/.compiler_flags
-/.depend
+*.o
+.compiler_flags
+.depend

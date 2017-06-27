@@ -26,6 +26,7 @@
 #include "net_module.hpp"
 #include "battery_module.hpp"
 #include "uptime_module.hpp"
+#include "fuzzy_clock.hpp"
 
 #include <string>
 #include <utility>
@@ -44,6 +45,7 @@ private:
   net_module net;
   battery_module battery;
   uptime_module uptime;
+  fuzzy_clock clock;
 
 }; // class local_modules
 

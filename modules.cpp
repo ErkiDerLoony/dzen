@@ -37,6 +37,7 @@ void local_modules::update() {
   net.update();
   battery.update();
   uptime.update();
+  clock.update();
 }
 
 string local_modules::format() const {
@@ -57,6 +58,8 @@ string local_modules::format() const {
   }
 
   buffer << uptime.format().first;
+  buffer << "   ";
+  buffer << clock.format().first;
   return buffer.str();
 }
 
