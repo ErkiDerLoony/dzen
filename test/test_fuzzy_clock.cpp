@@ -33,9 +33,16 @@ int main(int argc, char** argv) {
   test(23, 0, 59, "Elf Uhr");
   test(23, 1, 0, "Kurz nach Elf");
   test(23, 22, 29, "Zwanzig nach Elf");
-  test(23, 22, 30, "Kurz vor halb Zwölf");
+  test(23, 22, 30, "Fünf vor halb Zwölf");
+  test(23, 27, 29, "Fünf vor halb Zwölf");
+  test(23, 27, 30, "Kurz vor halb Zwölf");
+  test(23, 28, 59, "Kurz vor halb Zwölf");
+  test(23, 29, 0, "Halb Zwölf");
   test(23, 30, 0, "Halb Zwölf");
-  test(23, 32, 31, "Kurz nach halb Zwölf");
+  test(23, 30, 59, "Halb Zwölf");
+  test(23, 31, 0, "Kurz nach halb Zwölf");
+  test(23, 32, 29, "Kurz nach halb Zwölf");
+  test(23, 32, 30, "Fünf nach halb Zwölf");
   test(23, 38, 0, "Zwanzig vor Zwölf");
   test(23, 43, 0, "Viertel vor Zwölf");
   test(23, 48, 0, "Zehn vor Zwölf");
@@ -53,4 +60,6 @@ int main(int argc, char** argv) {
   test(12, 0, 0, "Zwölf Uhr");
   test(1, 0, 0, "Ein Uhr");
   test(1, 5, 0, "Fünf nach Eins");
+
+  test(13, 25, 49, "Fünf vor halb Zwei");
 }

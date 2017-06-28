@@ -108,11 +108,15 @@ std::string fuzzy_clock::format(const int hour, const int min, const int sec) co
     } else if (f < 22.5) {
       ss << "Zwanzig nach ";
     } else if (f < 27.5) {
+      ss << "Fünf vor halb ";
+    } else if (f < 29) {
       ss << "Kurz vor halb ";
-    } else if (f < 32.5) {
+    } else if (f < 31) {
       ss << "Halb ";
-    } else if (f < 37.5) {
+    } else if (f < 32.5) {
       ss << "Kurz nach halb ";
+    } else if (f < 37.5) {
+      ss << "Fünf nach halb ";
     } else if (f < 42.5) {
       ss << "Zwanzig vor ";
     } else if (f < 47.5) {
