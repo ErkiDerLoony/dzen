@@ -42,7 +42,9 @@ debugtest: debug
 clean:
 	@$(RM) -v $(OBJ) $(BIN)
 	@$(RM) -v $(FLAGS_FILE)
+	make -C test clean
 
 .PHONY: mrproper
 mrproper: clean
 	@$(RM) -v $(NAME)
+	make -C test mrproper

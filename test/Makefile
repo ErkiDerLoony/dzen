@@ -1,7 +1,8 @@
 FLAGS_FILE=.compiler_flags
 
-all: test_fuzzy_clock
-	./test_fuzzy_clock
+all: fuzzy_clock
+	./fuzzy_clock || exit 1
+	@echo -e '\033[32;1mAll tests successful.\033[0m'
 
 .PHONY: force
 $(FLAGS_FILE): force
@@ -10,15 +11,15 @@ $(FLAGS_FILE): force
 debug: CXXFLAGS+=-g -DDEBUG
 debug: all
 
-test_fuzzy_clock.o: test_fuzzy_clock.cpp $(FLAGS_FILE)
+fuzzy_clock.o: fuzzy_clock.cpp $(FLAGS_FILE)
 
-test_fuzzy_clock: test_fuzzy_clock.o ../fuzzy_clock.o ../module.o
+fuzzy_clock: fuzzy_clock.o ../fuzzy_clock.o ../module.o
 	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) ../fuzzy_clock.o ../module.o $<
 
 .PHONY: clean
 clean:
-	@$(RM) -v test_fuzzy_clock.o
+	@$(RM) -v fuzzy_clock.o
 
 .PHONY: mrproper
 mrproper: clean
-	@$(RM) -v test_fuzzy_clock
+	@$(RM) -v fuzzy_clock
